@@ -132,15 +132,15 @@
         {
 		  "@context": "http://schema.org/", 
 		  "@type": "Product", 
-		  "name": "Gunbot XT",
+		  "name": "Gunbot RT Standard edition",
 		  "image": "https://www.awesome-gunbot.com/assets/gunbot-strategies.jpg",
 		  "description": "Life time license for Gunbot with free software upgrades. 1 Exchange license included.",
-		  "brand": "Gunthy",
+		  "brand": "Gunbot",
 		  "offers": {
 			"@type": "Offer",
 			"priceCurrency": "BTC",
-			"price": "0.09",
-			"priceValidUntil": "2017-12-27",
+			"price": "0.056",
+			"priceValidUntil": "2018-06-30",
 			"availability": "http://schema.org/InStock",
 			"itemCondition": "http://schema.org/NewCondition"
 		  }
@@ -213,11 +213,13 @@
                         <div class="alert alert-warning fade show" role="alert">
                             <strong>You are buying:</strong>
                             <span id="product-name"></span>
-                            <br /> After your payment we're gonna reach out to you and help you getting started!
+                            <br /> After your payment we'll reach out to you and help you getting started!
 
                         </div>
-
+						
+						<h3><strong>How can we reach you?</strong></h3>
                         <div class="form-row">
+						
                             <div class="col form-group">
                                 <input name="email" type="email" class="form-control" placeholder="E-mail*" required>
                                 <small class="form-text text-muted">We'll send you instructions on how to get started.</small>
@@ -236,18 +238,16 @@
                                 <input name="last_name" type="text" class="form-control" placeholder="Last name*" required>
                             </div>
                         </div>
-
+						
+						<h3><strong>Register your API key</strong></h3>
                         <div class="form-row">
                             <div class="col form-group">
-                                <p>
-                                    By providing your exchange API key we can activate your license on the same day. Please save the corresponding secret for
-                                    your own administration.
-                                    <br />
-                                    <strong>You can also send it later by e-mail.</strong>
-
+                                <textarea name="api_keys" type="text" class="form-control" placeholder="Enter the API keys for the exchanges you want to use Gunbot on" rows="4"></textarea>
+                               			<p>&#x0a;</p>	
+								
+								<p>	There is no security risk to sending your API key. Please save the corresponding API secret for your own administration and never share it with anyone.</p>
+                                 <p>   By providing your exchange API key we can activate your license on the same day, you can also send it to us after your purchase.
                                 </p>
-                                <textarea name="api_keys" type="text" class="form-control" placeholder="Exchange API Keys" rows="4"></textarea>
-                                <small class="form-text text-muted">Security tip: NEVER share the exchange API secrets with anyone.</small>
                             </div>
 
                         </div>
