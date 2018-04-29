@@ -216,10 +216,12 @@
                             <br /> After your payment we'll reach out to you and help you getting started!
 
                         </div>
-						
-						<h3><strong>How can we reach you?</strong></h3>
+
+                        <h3>
+                            <strong>How can we reach you?</strong>
+                        </h3>
                         <div class="form-row">
-						
+
                             <div class="col form-group">
                                 <input name="email" type="email" class="form-control" placeholder="E-mail*" required>
                                 <small class="form-text text-muted">We'll send you instructions on how to get started.</small>
@@ -238,18 +240,24 @@
                                 <input name="last_name" type="text" class="form-control" placeholder="Last name*" required>
                             </div>
                         </div>
-						
-						<h3><strong>Register your API key</strong></h3>
+
+                        <h3>
+                            <strong>Register your API key</strong>
+                        </h3>
                         <div class="form-row">
                             <div class="col form-group">
-                                <textarea name="api_keys" type="text" class="form-control" placeholder="Enter the API keys for the exchanges you want to use Gunbot on" rows="4"></textarea>
-                               	<small class="form-text text-muted">Security tip: NEVER share the exchange API secrets with anyone.</small>		
-										
-										<p>&#x0a;</p>	
-								
-								<p>	There is no security risk to sending your API key. Please save the corresponding API secret for your own administration.<br>
-								The key to register does not need to have trading permissions, as Gunbot can use a secundary key for actual trading.</p>
-                                 <p>   By providing your exchange API key we can activate your license on the same day, you can also send it to us after your purchase.
+                                <textarea name="api_keys" type="text" class="form-control" placeholder="Enter the API keys for the exchanges you want to use Gunbot on"
+                                    rows="4"></textarea>
+                                <small class="form-text text-muted">Security tip: NEVER share the exchange API secrets with anyone.</small>
+
+                                <p>&#x0a;</p>
+
+                                <p> There is no security risk to sending your API key. Please save the corresponding API secret
+                                    for your own administration.
+                                    <br> The key to register does not need to have trading permissions, as Gunbot can use a secundary
+                                    key for actual trading.</p>
+                                <p> By providing your exchange API key we can activate your license on the same day, you can
+                                    also send it to us after your purchase.
                                 </p>
                             </div>
 
@@ -257,6 +265,7 @@
 
                         <div class="text-right">
                             <input id="product-slug" name="product" type="hidden" />
+                            <input id="affiliate" name="affiliate" type="hidden" />
 
                             <button class="btn btn-primary btn-lg btn-buy" aria-pressed="true">Pay via coinpayments</button>
                             <small class="form-text text-muted">We accept payments in BTC, ETH, BCH, LTC,
@@ -285,7 +294,8 @@
             <div class="row">
                 <div class="col-lg-7 col-md-12 text-white critarea-desc mt-3 mb-3">
                     Do you have questions about Gunbot? Then contact us personally!
-                    <br><br>We'll get in touch with you as soon as we can.
+                    <br>
+                    <br>We'll get in touch with you as soon as we can.
                 </div>
                 <div class="col-lg-5 col-md-12 mt-3 mb-3 text-center text-md-right">
                     <div class="btn-group">
@@ -458,76 +468,76 @@
 
             var PRODUCTS = {
                 'gunbot-rt-standard-edition': {
-				name: 'Gunbot RT Standard edition',
-				amount: 0.056,
-				core: true,
-				lite: false,
-				tradingview: false,
-				premium_support: true,
-			  },
-			  'gunbot-lite-edition': {
-				name: 'Gunbot Lite edition',
-				amount: 0.02,
-				core: false,
-				lite: true,
-				tradingview: false,
-				premium_support: true,
-			  },
-			  'gunbot-rt-pro-edition': {
-				name: 'Gunbot RT Pro edition',
-				amount: 0.080,
-				core: true,
-				lite: false,
-				tradingview: true,
-				premium_support: true,
-			  },
-			  'gunbot-rt-ultimate-edition': {
-				name: 'Gunbot RT Ultimate edition',
-				amount: 0.150,
-				core: true,
-				lite: false,
-				tradingview: true,
-				premium_support: true,
-			  },
-			  '1-extra-license': {
-				name: '1 additional exchange license',
-				amount: 0.028,
-				core: false,
-				lite: false,
-				tradingview: false,
-				premium_support: false,
-			  },
-			  '3-extra-license': {
-				name: '3 additional exchange licenses',
-				amount: 0.053,
-				core: false,
-				lite: false,
-				tradingview: false,
-				premium_support: false,
-			  },
-			  'addons-pack': {
-				name: 'Add-ons pack. All exchanges, all add-ons.',
-				amount: 0.095,
-				core: false,
-				lite: false,
-				tradingview: true,
-				premium_support: false,
-			  },
-			  'tradingview-addon': {
-				name: 'TradingView add-on',
-				amount: 0.028,
-				core: false,
-				lite: false,
-				tradingview: true,
-				premium_support: false,
-			  },
-			  'fake': {
-				name: 'Gunbot XT +1 exchange +Premium support',
-				amount: 0.000028,
-				core: true,
-				lite: false,
-				tradingview: false,
-				premium_support: true,
+                    name: 'Gunbot RT Standard edition',
+                    amount: 0.056,
+                    core: true,
+                    lite: false,
+                    tradingview: false,
+                    premium_support: true,
+                },
+                'gunbot-lite-edition': {
+                    name: 'Gunbot Lite edition',
+                    amount: 0.02,
+                    core: false,
+                    lite: true,
+                    tradingview: false,
+                    premium_support: true,
+                },
+                'gunbot-rt-pro-edition': {
+                    name: 'Gunbot RT Pro edition',
+                    amount: 0.080,
+                    core: true,
+                    lite: false,
+                    tradingview: true,
+                    premium_support: true,
+                },
+                'gunbot-rt-ultimate-edition': {
+                    name: 'Gunbot RT Ultimate edition',
+                    amount: 0.150,
+                    core: true,
+                    lite: false,
+                    tradingview: true,
+                    premium_support: true,
+                },
+                '1-extra-license': {
+                    name: '1 additional exchange license',
+                    amount: 0.028,
+                    core: false,
+                    lite: false,
+                    tradingview: false,
+                    premium_support: false,
+                },
+                '3-extra-license': {
+                    name: '3 additional exchange licenses',
+                    amount: 0.053,
+                    core: false,
+                    lite: false,
+                    tradingview: false,
+                    premium_support: false,
+                },
+                'addons-pack': {
+                    name: 'Add-ons pack. All exchanges, all add-ons.',
+                    amount: 0.095,
+                    core: false,
+                    lite: false,
+                    tradingview: true,
+                    premium_support: false,
+                },
+                'tradingview-addon': {
+                    name: 'TradingView add-on',
+                    amount: 0.028,
+                    core: false,
+                    lite: false,
+                    tradingview: true,
+                    premium_support: false,
+                },
+                'fake': {
+                    name: 'Gunbot XT +1 exchange +Premium support',
+                    amount: 0.000028,
+                    core: true,
+                    lite: false,
+                    tradingview: false,
+                    premium_support: true,
                 }
             }
 
@@ -535,6 +545,10 @@
 
             $('#product-slug').val(product_slug)
             $('#product-name').text(PRODUCTS[product_slug].name)
+
+            if (window.localStorage) {
+                $('#affiliate').val(window.localStorage.getItem('r'))
+            }
 
         }())
     </script>

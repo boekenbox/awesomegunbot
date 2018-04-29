@@ -70,10 +70,10 @@ section.hero {
     height: auto;
     text-align: center;
     background: #ff0844;
-    background: -webkit-linear-gradient(left, #3a1c71, #d76d77, #ffaf7b);
-    background: -o-linear-gradient(right, #3a1c71, #d76d77, #ffaf7b);
-    background: -moz-linear-gradient(right, #3a1c71, #d76d77, #ffaf7b);
-    background: linear-gradient(to right, #3a1c71, #d76d77, #ffaf7b);
+    background: -webkit-linear-gradient(left, #434343, #000000);
+    background: -o-linear-gradient(right, #434343, #000000);
+    background: -moz-linear-gradient(right, #434343, #000000);
+    background: linear-gradient(to right, #434343, #000000);
 }
 h1 {
     font-size: 48px;
