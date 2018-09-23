@@ -1,4 +1,0 @@
-User-Agent: *
-Disallow: 
-
-Sitemap: https://www.awesome-gunbot.com/sitemap.xml
