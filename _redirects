@@ -1,0 +1,11 @@
+# Redirects from what the browser requests to what we serve
+/features/default-settings              /features
+/features/tradingview-add-on             /features
+/features/reversal-trading              /features
+/features/double-up              /features
+/features/headless-mode              /features
+/features/browser-based-interface              /features
+/features/system-requirements              /features
+/features/multiple-exchanges              /features
+/features/gunbot-strategies              /features
+/features/enhance-manual-trading             /features
