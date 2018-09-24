@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--  This site was created in Webflow. http://www.webflow.com  -->
-<!--  Last Published: Sun Sep 23 2018 14:34:12 GMT+0000 (UTC)  -->
-<html data-wf-page="5b9a68857d3b3e7655530487" data-wf-site="5b9779f58f2b573b4460cdbb">
+<!--  Last Published: Mon Sep 24 2018 12:16:13 GMT+0000 (UTC)  -->
+<html data-wf-page="5ba89a429ad78772ef1faad4" data-wf-site="5b9779f58f2b573b4460cdbb">
 <head>
   <meta charset="utf-8">
   <title>Shopping cart</title>
@@ -53,7 +53,7 @@
     <div class="hero-block-overlay business-2">
       <div class="container w-container">
         <div data-ix="fade-in-on-load" class="white-contact-form centered w-form">
-          <form id="wf-form-Buy-form" name="wf-form-Buy-form" data-name="Buy form" method="GET" action="https://wt-b6e9d873fd5dfca293560032272f1f8d-0.sandbox.auth0-extend.com/awesome-gunbot/start" class="w-clearfix">
+          <form id="wf-form-Buy-form" name="wf-form-Buy-form" data-name="Buy form" action="https://wt-b6e9d873fd5dfca293560032272f1f8d-0.sandbox.auth0-extend.com/awesome-gunbot/start" class="w-clearfix">
             <h1 class="form-title">You are one step away from owning a lifetime license of the best trading bot on the market! 🚀</h1>
             <p class="infobox"><strong>You are buying:</strong> <span id="product-name"></span><br>‍<br> After your payment we&#x27;ll reach out to you and help you get started!</p>
             <h1 class="small-section-title bold small">How can we reach you?</h1><input type="email" class="text-field w-input" maxlength="256" autofocus="true" name="email" data-name="email" placeholder="Your email address*" id="email" required="">
@@ -61,7 +61,6 @@
             <div class="w-row">
               <div class="contact-column w-col w-col-6"><input type="text" class="text-field-2 w-input" maxlength="256" name="first_name" data-name="first_name" placeholder="First name*" id="first_name" required=""></div>
               <div class="contact-column w-col w-col-6"><input type="text" class="text-field-3 w-input" maxlength="256" name="last_name" data-name="last_name" placeholder="Last name*" id="last_name" required=""><input id="product-slug" name="product" type="hidden" /></div>
-
             </div>
             <h1 class="small-section-title bold small">Register your API key</h1><textarea id="api_keys" name="api_keys" placeholder="Enter the API keys for the exchanges you want to use Gunbot on" maxlength="5000" data-name="api_keys" class="textarea w-input"></textarea>
             <div class="text-block-2">Security tip: NEVER share the exchange API secrets with anyone.</div>
@@ -210,7 +209,7 @@
     amount: 0.2,
     core: true,
     lite: false,
-    tradingview: true,
+    tradingview: false,
     premium_support: true,
   },
   'gunbot-ultimate-edition': {
@@ -221,25 +220,25 @@
     tradingview: true,
     premium_support: true,
   },
-  'upgrade-to-gunbot-rt-standard-edition': {
-    name: 'Upgrade to Gunbot RT Standard edition',
-    amount: 0.036,
+  'upgrade-to-gunbot-standard-edition': {
+    name: 'Upgrade to Gunbot Standard edition - 0.06 BTC',
+    amount: 0.06,
     core: true,
     lite: false,
     tradingview: false,
     premium_support: true,
   },
-  'upgrade-to-gunbot-rt-pro-edition': {
-    name: 'Upgrade to Gunbot RT Pro edition',
-    amount: 0.060,
+  'upgrade-to-gunbot-pro-edition': {
+    name: 'Upgrade to Gunbot Pro edition - 0.16 BTC',
+    amount: 0.16,
     core: true,
     lite: false,
-    tradingview: true,
+    tradingview: false,
     premium_support: true,
   },
-  'upgrade-to-gunbot-rt-ultimate-edition': {
-    name: 'Upgrade to Gunbot RT Ultimate edition',
-    amount: 0.130,
+  'upgrade-to-gunbot-ultimate-edition': {
+    name: 'Upgrade to Gunbot Ultimate edition - 0.26 BTC',
+    amount: 0.26,
     core: true,
     lite: false,
     tradingview: true,
