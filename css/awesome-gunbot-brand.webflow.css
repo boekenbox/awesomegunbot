@@ -2116,6 +2116,7 @@ figcaption {
 }
 
 .tab-button-right.middle {
+  border-width: 1px;
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
 }
@@ -2264,6 +2265,7 @@ figcaption {
   width: 70%;
   margin-right: auto;
   margin-left: auto;
+  padding-bottom: 0px;
   opacity: 0.71;
   font-size: 19px;
   line-height: 24px;
@@ -7884,6 +7886,10 @@ html.w-mod-js *[data-ix="hide-lightbox"] {
   }
   .tab-button-right.w--current {
     border-radius: 60px;
+  }
+  .tab-button-right.middle {
+    border-top-right-radius: 60px;
+    border-bottom-right-radius: 60px;
   }
   .pricing-tab-pane {
     padding-top: 20px;

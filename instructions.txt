@@ -1,0 +1,10 @@
+1. remove unneeded files
+2. move contents /site to root. delete /site
+3. rename all html files: 
+   for /R %x in (*.html) do ren "%x" index.html
+4. find and replace in all documents:
+   "../ --> "
+5. add to cart:
+   <span id="product-name"></span>
+6. add to cart:
+   <input id="product-slug" name="product" type="hidden" />
