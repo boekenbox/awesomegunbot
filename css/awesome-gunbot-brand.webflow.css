@@ -733,6 +733,10 @@ figcaption {
   padding-bottom: 20px;
 }
 
+.section-title.mail {
+  font-size: 40px;
+}
+
 .section-description {
   margin-top: 30px;
   font-size: 21px;
