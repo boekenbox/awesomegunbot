@@ -552,6 +552,7 @@ figcaption {
 
 .section.tint.mail {
   margin-bottom: 150px;
+  background-color: transparent;
 }
 
 .section.app-info-section {
@@ -5281,6 +5282,10 @@ figcaption {
 
 .tab-link-tab-3 {
   background-color: transparent;
+}
+
+.body {
+  background-color: #fff;
 }
 
 html.w-mod-js *[data-ix="hide-block-title"] {
