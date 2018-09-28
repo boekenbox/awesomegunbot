@@ -7972,6 +7972,9 @@ html.w-mod-js *[data-ix="hide-lightbox"] {
   .browser-mockup-right.bittrex {
     position: static;
   }
+  .video-hero-container {
+    padding-top: 0px;
+  }
   .overall-hero-title {
     font-size: 27px;
     line-height: 31px;
