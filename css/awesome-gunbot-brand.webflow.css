@@ -4992,7 +4992,7 @@ figcaption {
   display: block;
   margin-top: 0px;
   padding-top: 0px;
-  padding-bottom: 20px;
+  padding-bottom: 0px;
   font-family: 'Source Sans Pro', sans-serif;
   color: #333;
   font-size: 15px;
