@@ -87,7 +87,7 @@ var $win = $(window);
 var $doc = $(document);
 var isFunction = $.isFunction;
 var _ = Webflow._ = __webpack_require__(6);
-var tram = __webpack_require__(2) && $.tram;
+var tram = Webflow.tram = __webpack_require__(2) && $.tram;
 var domready = false;
 var destroyed = false;
 tram.config.hideBackface = false;
@@ -944,18 +944,17 @@ module.exports = api;
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(5);
+__webpack_require__(7);
 __webpack_require__(8);
-__webpack_require__(9);
 __webpack_require__(10);
+__webpack_require__(11);
 __webpack_require__(12);
 __webpack_require__(13);
 __webpack_require__(14);
 __webpack_require__(15);
 __webpack_require__(16);
 __webpack_require__(17);
-__webpack_require__(18);
-__webpack_require__(19);
-module.exports = __webpack_require__(20);
+module.exports = __webpack_require__(18);
 
 
 /***/ }),
@@ -963,81 +962,83 @@ module.exports = __webpack_require__(20);
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
- * Webflow: Background Video component
+ * Webflow: Brand pages on the subdomain
  */
 
 var Webflow = __webpack_require__(0);
-var WebflowEnv = __webpack_require__(7);
 
-Webflow.define('backgroundVideo', module.exports = function ($) {
+Webflow.define('brand', module.exports = function ($) {
+  var api = {};
+  var doc = document;
+  var $html = $('html');
+  var $body = $('body');
+  var namespace = '.w-webflow-badge';
+  var location = window.location;
+  var isPhantom = /PhantomJS/i.test(navigator.userAgent);
+  var fullScreenEvents = 'fullscreenchange webkitfullscreenchange mozfullscreenchange msfullscreenchange';
+  var brandElement;
 
-  function ready() {
-    // Prevent default render while in-app
-    if (Webflow.env()) {
-      return;
+  // -----------------------------------
+  // Module methods
+
+  api.ready = function () {
+    var shouldBrand = $html.attr('data-wf-status');
+    var publishedDomain = $html.attr('data-wf-domain') || '';
+    if (/\.webflow\.io$/i.test(publishedDomain) && location.hostname !== publishedDomain) {
+      shouldBrand = true;
     }
+    if (shouldBrand && !isPhantom) {
+      brandElement = brandElement || createBadge();
+      ensureBrand();
+      setTimeout(ensureBrand, 500);
 
-    var backgroundVideoNodes = $(document).find('.w-background-video').not('.w-background-video-atom');
-
-    if (backgroundVideoNodes.length === 0) {
-      return;
+      $(doc).off(fullScreenEvents, onFullScreenChange).on(fullScreenEvents, onFullScreenChange);
     }
+  };
 
-    backgroundVideoNodes.each(function (_, node) {
-      var video = createVideoNode(node);
-      if (video) {
-        $(node).prepend(video);
-      }
-    });
+  function onFullScreenChange() {
+    var fullScreen = doc.fullScreen || doc.mozFullScreen || doc.webkitIsFullScreen || doc.msFullscreenElement || Boolean(doc.webkitFullscreenElement);
+    $(brandElement).attr('style', fullScreen ? 'display: none !important;' : '');
   }
 
-  function createVideoNode(nativeNode) {
-    var nodeData = $(nativeNode).data();
+  function createBadge() {
+    var $brand = $('<a class="w-webflow-badge"></a>').attr('href', 'https://webflow.com?utm_campaign=brandjs');
 
-    if (!nodeData.videoUrls) {
-      return;
-    }
-
-    // Prevent loading the videos on mobile browsers as its likely that they
-    // are on low-bandwidth connections.
-    if (WebflowEnv.isMobile()) {
-      if (nodeData.posterUrl) {
-        return $('<div class="w-background-video-poster">').css({
-          backgroundImage: 'url(' + nodeData.posterUrl + ')',
-          backgroundSize: 'cover',
-          backgroundPosition: '50% 50%',
-          position: 'absolute',
-          // zIndex needed for video poster to render behind a background set
-          // on the div.w-background-video
-          zIndex: -100,
-          width: '100%',
-          height: '100%',
-          top: 0,
-          left: 0
-        });
-      }
-      return;
-    }
-
-    var videoURLs = nodeData.videoUrls.split(',');
-    var sourceNodes = videoURLs.map(function (url) {
-      return $('<source />').attr({
-        src: url,
-        'data-wf-ignore': ''
-      });
+    var $logoArt = $('<img>').attr('src', 'https://d1otoma47x30pg.cloudfront.net/img/webflow-badge-icon.60efbf6ec9.svg').css({
+      marginRight: '8px',
+      width: '16px'
     });
 
-    var videoNode = $('<video />').attr({
-      autoplay: nodeData.autoplay,
-      loop: nodeData.loop
-    }).css('background-image', 'url(' + nodeData.posterUrl + ')');
+    var $logoText = $('<img>').attr('src', 'https://d1otoma47x30pg.cloudfront.net/img/webflow-badge-text.6faa6a38cd.svg');
 
-    videoNode.append(sourceNodes);
-
-    return videoNode;
+    $brand.append($logoArt, $logoText);
+    return $brand[0];
   }
 
-  return { ready: ready };
+  function ensureBrand() {
+    var found = $body.children(namespace);
+    var match = found.length && found.get(0) === brandElement;
+    var inEditor = Webflow.env('editor');
+    if (match) {
+      // Remove brand when Editor is active
+      if (inEditor) {
+        found.remove();
+      }
+      // Exit early, brand is in place
+      return;
+    }
+    // Remove any invalid brand elements
+    if (found.length) {
+      found.remove();
+    }
+    // Append the brand (unless Editor is active)
+    if (!inEditor) {
+      $body.append(brandElement);
+    }
+  }
+
+  // Export module
+  return api;
 });
 
 /***/ }),
@@ -1400,106 +1401,6 @@ module.exports = function () {
 
 /***/ }),
 /* 7 */
-/***/ (function(module, exports) {
-
-/**
- * Returns a Boolean representing whether or not the client is a mobile browser.
- *
- * NOTE: Many thanks to detectmobilebrowsers.com for this user agent detection
- * regex, without which the mobile internet probably wouldn't exist.
- */
-exports.isMobile = function () {
-  var userAgent = navigator.userAgent || navigator.vendor || window.opera;
-  return (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(userAgent) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(userAgent.substr(0, 4))
-  );
-};
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * Webflow: Brand pages on the subdomain
- */
-
-var Webflow = __webpack_require__(0);
-
-Webflow.define('brand', module.exports = function ($) {
-  var api = {};
-  var doc = document;
-  var $html = $('html');
-  var $body = $('body');
-  var namespace = '.w-webflow-badge';
-  var location = window.location;
-  var isPhantom = /PhantomJS/i.test(navigator.userAgent);
-  var fullScreenEvents = 'fullscreenchange webkitfullscreenchange mozfullscreenchange msfullscreenchange';
-  var brandElement;
-
-  // -----------------------------------
-  // Module methods
-
-  api.ready = function () {
-    var shouldBrand = $html.attr('data-wf-status');
-    var publishedDomain = $html.attr('data-wf-domain') || '';
-    if (/\.webflow\.io$/i.test(publishedDomain) && location.hostname !== publishedDomain) {
-      shouldBrand = true;
-    }
-    if (shouldBrand && !isPhantom) {
-      brandElement = brandElement || createBadge();
-      ensureBrand();
-      setTimeout(ensureBrand, 500);
-
-      $(doc).off(fullScreenEvents, onFullScreenChange).on(fullScreenEvents, onFullScreenChange);
-    }
-  };
-
-  function onFullScreenChange() {
-    var fullScreen = doc.fullScreen || doc.mozFullScreen || doc.webkitIsFullScreen || doc.msFullscreenElement || Boolean(doc.webkitFullscreenElement);
-    $(brandElement).attr('style', fullScreen ? 'display: none !important;' : '');
-  }
-
-  function createBadge() {
-    var $brand = $('<a class="w-webflow-badge"></a>').attr('href', 'https://webflow.com?utm_campaign=brandjs');
-
-    var $logoArt = $('<img>').attr('src', 'https://d1otoma47x30pg.cloudfront.net/img/webflow-badge-icon.60efbf6ec9.svg').css({
-      marginRight: '8px',
-      width: '16px'
-    });
-
-    var $logoText = $('<img>').attr('src', 'https://d1otoma47x30pg.cloudfront.net/img/webflow-badge-text.6faa6a38cd.svg');
-
-    $brand.append($logoArt, $logoText);
-    return $brand[0];
-  }
-
-  function ensureBrand() {
-    var found = $body.children(namespace);
-    var match = found.length && found.get(0) === brandElement;
-    var inEditor = Webflow.env('editor');
-    if (match) {
-      // Remove brand when Editor is active
-      if (inEditor) {
-        found.remove();
-      }
-      // Exit early, brand is in place
-      return;
-    }
-    // Remove any invalid brand elements
-    if (found.length) {
-      found.remove();
-    }
-    // Append the brand (unless Editor is active)
-    if (!inEditor) {
-      $body.append(brandElement);
-    }
-  }
-
-  // Export module
-  return api;
-});
-
-/***/ }),
-/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -1606,7 +1507,7 @@ Webflow.define('dropdown', module.exports = function ($, _) {
     data.manageZ = zIndex === defaultZIndex || zIndex === defaultZIndex + 1;
 
     data.config = {
-      hover: Boolean(data.el.attr('data-hover')) && !touch,
+      hover: (data.el.attr('data-hover') === true || data.el.attr('data-hover') === '1') && !touch,
       delay: Number(data.el.attr('data-delay')) || 0
     };
   }
@@ -1796,7 +1697,7 @@ Webflow.define('dropdown', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -1809,7 +1710,7 @@ Webflow.define('forms', module.exports = function ($, _) {
   var api = {};
 
   // Cross-Domain AJAX for IE8
-  __webpack_require__(11);
+  __webpack_require__(9);
 
   var $doc = $(document);
   var $forms;
@@ -2287,7 +2188,7 @@ Webflow.define('forms', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports) {
 
 /*!
@@ -2346,7 +2247,7 @@ module.exports = function ($) {
 }(window.jQuery);
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -2871,7 +2772,7 @@ Webflow.define('ix', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*eslint no-shadow: 0*/
@@ -3475,7 +3376,7 @@ Webflow.define('lightbox', module.exports = function ($) {
 });
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -3591,7 +3492,7 @@ Webflow.define('links', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 15 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -3607,7 +3508,7 @@ Webflow.define('maps', module.exports = function ($, _) {
   var $maps;
   var namespace = '.w-widget-map';
   // The API key is injected here from the Webflow Integrations tab on the site's dashboard
-  var googleMapsApiKey = 'AIzaSyBQ4EYEg4aRz9-yiCnerTV7bk8GCWgZOhk';
+  var googleMapsApiKey = '';
 
   // -----------------------------------
   // Module methods
@@ -3793,7 +3694,7 @@ Webflow.define('maps', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 16 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -4189,7 +4090,7 @@ Webflow.define('navbar', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 17 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -4344,7 +4245,7 @@ Webflow.define('scroll', module.exports = function ($) {
 });
 
 /***/ }),
-/* 18 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -4880,7 +4781,7 @@ Webflow.define('slider', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 19 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -5111,7 +5012,7 @@ Webflow.define('tabs', module.exports = function ($) {
 });
 
 /***/ }),
-/* 20 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
