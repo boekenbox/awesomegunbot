@@ -555,6 +555,10 @@ figcaption {
   background-color: transparent;
 }
 
+.section.tint.grey {
+  background-color: #f5f5f5;
+}
+
 .section.app-info-section {
   padding-top: 70px;
   padding-bottom: 60px;
@@ -1148,7 +1152,7 @@ figcaption {
   height: 100%;
   padding-top: 150px;
   padding-bottom: 80px;
-  background-color: rgba(14, 70, 168, .34);
+  background-color: rgba(2, 8, 19, .75);
   color: #fff;
 }
 
