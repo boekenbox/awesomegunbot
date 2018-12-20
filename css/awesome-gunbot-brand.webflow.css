@@ -3905,6 +3905,10 @@ figcaption {
   background-image: url('../images/gunthy-gui.png');
 }
 
+.image-block-right.binance {
+  background-image: url('../images/bitmex.png');
+}
+
 .image-block-right.generic {
   background-image: url('../images/fully-automatic-trading.png');
 }
