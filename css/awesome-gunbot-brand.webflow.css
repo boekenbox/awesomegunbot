@@ -752,9 +752,11 @@ figcaption {
 
 .section-title.blackfriday {
   margin-bottom: 30px;
+  color: #fff;
 }
 
 .section-title.blackfriday._2 {
+  margin-bottom: 10px;
   font-size: 25px;
 }
 
@@ -5380,8 +5382,8 @@ figcaption {
   color: #fff;
 }
 
-.bold-text-5 {
-  color: red;
+.bold-text-7 {
+  color: #fff;
 }
 
 .clock {
@@ -5475,6 +5477,8 @@ figcaption {
 }
 
 .div-block {
+  margin-right: 90px;
+  margin-left: 90px;
   padding-top: 10px;
   border: 1px solid #fff;
   border-radius: 5px;
@@ -5484,6 +5488,7 @@ figcaption {
 .bold-text-6 {
   margin-top: 0px;
   padding-top: 0px;
+  color: red;
 }
 
 html.w-mod-js *[data-ix="hide-block-title"] {
@@ -8859,6 +8864,10 @@ html.w-mod-js *[data-ix="hide-lightbox"] {
     padding-top: 0vh;
     font-size: 5vh;
     line-height: 9vh;
+  }
+  .div-block {
+    margin-right: 0px;
+    margin-left: 0px;
   }
 }
 
