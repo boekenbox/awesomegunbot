@@ -1,7 +1,7 @@
 body {
   height: 100%;
   background-color: #424549;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   color: #333;
   font-size: 15px;
   line-height: 23px;
@@ -1462,7 +1462,7 @@ figcaption {
 
 .feature-title {
   margin-bottom: 23px;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   color: #1e2022;
   font-size: 19px;
   font-weight: 600;
@@ -2135,7 +2135,7 @@ figcaption {
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
   background-color: transparent;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   color: #fff;
   font-size: 12px;
   letter-spacing: 1px;
@@ -2158,7 +2158,7 @@ figcaption {
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
   background-color: transparent;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   color: #fff;
   font-size: 12px;
   letter-spacing: 1px;
@@ -2879,7 +2879,7 @@ figcaption {
 
 .hero-main-title {
   margin-top: 0px;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   color: #fff;
   font-size: 70px;
   line-height: 54px;
@@ -3495,7 +3495,7 @@ figcaption {
 .subpage-title {
   margin-top: 0px;
   margin-bottom: 0px;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   font-size: 50px;
   line-height: 40px;
   font-weight: 400;
@@ -3529,7 +3529,7 @@ figcaption {
   margin-top: 20px;
   margin-right: auto;
   margin-left: auto;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   font-size: 20px;
   line-height: 27px;
   font-weight: 300;
@@ -5021,11 +5021,17 @@ figcaption {
 }
 
 .image-12 {
+  margin-top: 0px;
+  padding-top: 0px;
   padding-bottom: 0px;
 }
 
+.image-12.huobi {
+  padding-top: 14px;
+}
+
 .paragraph-2 {
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   color: #000;
   font-size: 16px;
   font-weight: 400;
@@ -5038,7 +5044,7 @@ figcaption {
 }
 
 .press-image-wrapper.title {
-  padding-top: 21px;
+  padding-top: 0px;
 }
 
 .image-11 {
@@ -5050,7 +5056,7 @@ figcaption {
   margin-top: 0px;
   padding-top: 0px;
   padding-bottom: 0px;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   color: #333;
   font-size: 15px;
   text-align: center;
@@ -5392,7 +5398,7 @@ figcaption {
   margin: auto;
   padding-right: 10px;
   padding-left: 10px;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Source Sans Pro';
   font-size: 20px;
   line-height: 25px;
 }
@@ -5489,6 +5495,10 @@ figcaption {
   margin-top: 0px;
   padding-top: 0px;
   color: red;
+}
+
+.image-16 {
+  padding-top: 0px;
 }
 
 html.w-mod-js *[data-ix="hide-block-title"] {
@@ -6484,12 +6494,15 @@ html.w-mod-js *[data-ix="hide-lightbox"] {
     background-color: #fff;
     color: #333;
   }
+  .image-12.huobi {
+    padding-top: 0px;
+  }
   .press-image-wrapper {
     padding-right: 8px;
     padding-left: 8px;
   }
   .press-image-wrapper.title {
-    padding-top: 12px;
+    padding-top: 0px;
   }
   .press-title {
     margin-top: 4px;
@@ -6504,6 +6517,10 @@ html.w-mod-js *[data-ix="hide-lightbox"] {
   .number {
     width: 35vh;
     font-size: 14vh;
+  }
+  .image-16 {
+    padding-top: 0px;
+    padding-bottom: 0px;
   }
 }
 
@@ -7714,6 +7731,7 @@ html.w-mod-js *[data-ix="hide-lightbox"] {
     padding: 40px 20px;
   }
   .section-2.press {
+    display: none;
     padding-top: 18px;
     padding-bottom: 18px;
     text-align: center;
