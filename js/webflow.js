@@ -508,7 +508,7 @@ module.exports = true;
 /* 10 */
 /***/ (function(module, exports) {
 
-var core = module.exports = { version: '2.5.7' };
+var core = module.exports = { version: '2.6.3' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 
@@ -695,7 +695,7 @@ var store = global[SHARED] || (global[SHARED] = {});
 })('versions', []).push({
   version: core.version,
   mode: __webpack_require__(9) ? 'pure' : 'global',
-  copyright: '© 2018 Denis Pushkarev (zloirock.ru)'
+  copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
 
 
@@ -1541,7 +1541,7 @@ module.exports = api;
 
 __webpack_require__(41);
 __webpack_require__(74);
-__webpack_require__(75);
+__webpack_require__(76);
 __webpack_require__(77);
 __webpack_require__(78);
 __webpack_require__(79);
@@ -1561,79 +1561,292 @@ module.exports = __webpack_require__(85);
 
 
 /**
- * Webflow: Brand pages on the subdomain
+ * Webflow: Dropdown component
  */
 
 var Webflow = __webpack_require__(0);
+var IXEvents = __webpack_require__(15);
 
-Webflow.define('brand', module.exports = function ($) {
+Webflow.define('dropdown', module.exports = function ($, _) {
   var api = {};
-  var doc = document;
-  var $html = $('html');
-  var $body = $('body');
-  var namespace = '.w-webflow-badge';
-  var location = window.location;
-  var isPhantom = /PhantomJS/i.test(navigator.userAgent);
-  var fullScreenEvents = 'fullscreenchange webkitfullscreenchange mozfullscreenchange msfullscreenchange';
-  var brandElement;
+  var $doc = $(document);
+  var $dropdowns;
+  var designer;
+  var inApp = Webflow.env();
+  var touch = Webflow.env.touch;
+  var namespace = '.w-dropdown';
+  var stateOpen = 'w--open';
+  var closeEvent = 'w-close' + namespace;
+  var ix = IXEvents.triggers;
+  var defaultZIndex = 900; // @dropdown-depth
+  var inPreview = false;
 
   // -----------------------------------
   // Module methods
 
-  api.ready = function () {
-    var shouldBrand = $html.attr('data-wf-status');
-    var publishedDomain = $html.attr('data-wf-domain') || '';
-    if (/\.webflow\.io$/i.test(publishedDomain) && location.hostname !== publishedDomain) {
-      shouldBrand = true;
-    }
-    if (shouldBrand && !isPhantom) {
-      brandElement = brandElement || createBadge();
-      ensureBrand();
-      setTimeout(ensureBrand, 500);
+  api.ready = init;
 
-      $(doc).off(fullScreenEvents, onFullScreenChange).on(fullScreenEvents, onFullScreenChange);
+  api.design = function () {
+    // Close all when returning from preview
+    if (inPreview) {
+      closeAll();
     }
+    inPreview = false;
+    init();
   };
 
-  function onFullScreenChange() {
-    var fullScreen = doc.fullScreen || doc.mozFullScreen || doc.webkitIsFullScreen || doc.msFullscreenElement || Boolean(doc.webkitFullscreenElement);
-    $(brandElement).attr('style', fullScreen ? 'display: none !important;' : '');
+  api.preview = function () {
+    inPreview = true;
+    init();
+  };
+
+  // -----------------------------------
+  // Private methods
+
+  function init() {
+    designer = inApp && Webflow.env('design');
+
+    // Find all instances on the page
+    $dropdowns = $doc.find(namespace);
+    $dropdowns.each(build);
   }
 
-  function createBadge() {
-    var $brand = $('<a class="w-webflow-badge"></a>').attr('href', 'https://webflow.com?utm_campaign=brandjs');
+  function build(i, el) {
+    var $el = $(el);
 
-    var $logoArt = $('<img>').attr('src', 'https://d1otoma47x30pg.cloudfront.net/img/webflow-badge-icon.60efbf6ec9.svg').css({
-      marginRight: '8px',
-      width: '16px'
-    });
+    // Store state in data
+    var data = $.data(el, namespace);
+    if (!data) {
+      data = $.data(el, namespace, { open: false, el: $el, config: {} });
+    }
+    data.list = $el.children('.w-dropdown-list');
+    data.toggle = $el.children('.w-dropdown-toggle');
+    data.links = data.list.children('.w-dropdown-link');
+    data.outside = outside(data);
+    data.complete = complete(data);
+    data.leave = leave(data);
+    data.moveOutside = moveOutside(data);
 
-    var $logoText = $('<img>').attr('src', 'https://d1otoma47x30pg.cloudfront.net/img/webflow-badge-text.6faa6a38cd.svg');
+    // Remove old events
+    $el.off(namespace);
+    data.toggle.off(namespace);
 
-    $brand.append($logoArt, $logoText);
-    return $brand[0];
-  }
+    // Set config from data attributes
+    configure(data);
 
-  function ensureBrand() {
-    var found = $body.children(namespace);
-    var match = found.length && found.get(0) === brandElement;
-    var inEditor = Webflow.env('editor');
-    if (match) {
-      // Remove brand when Editor is active
-      if (inEditor) {
-        found.remove();
+    if (data.nav) {
+      data.nav.off(namespace);
+    }
+    data.nav = $el.closest('.w-nav');
+    data.nav.on(closeEvent, handler(data));
+
+    // Add events based on mode
+    if (designer) {
+      $el.on('setting' + namespace, handler(data));
+    } else {
+      data.toggle.on(mouseOrTap() + namespace, toggle(data));
+      if (data.config.hover) {
+        data.toggle.on('mouseenter' + namespace, enter(data));
       }
-      // Exit early, brand is in place
+      $el.on(closeEvent, handler(data));
+
+      // Close in preview mode and clean the data.hovering state
+      if (inApp) {
+        data.hovering = false;
+        close(data);
+      }
+    }
+  }
+
+  function configure(data) {
+    // Determine if z-index should be managed
+    var zIndex = Number(data.el.css('z-index'));
+    data.manageZ = zIndex === defaultZIndex || zIndex === defaultZIndex + 1;
+
+    data.config = {
+      hover: (data.el.attr('data-hover') === true || data.el.attr('data-hover') === '1') && !touch,
+      delay: Number(data.el.attr('data-delay')) || 0
+    };
+  }
+
+  function handler(data) {
+    return function (evt, options) {
+      options = options || {};
+
+      if (evt.type === 'w-close') {
+        return close(data);
+      }
+
+      if (evt.type === 'setting') {
+        configure(data);
+        options.open === true && open(data, true);
+        options.open === false && close(data, true);
+        return;
+      }
+    };
+  }
+
+  function toggle(data) {
+    return _.debounce(function () {
+      data.open ? close(data) : open(data);
+    });
+  }
+
+  function open(data) {
+    if (data.open) {
       return;
     }
-    // Remove any invalid brand elements
-    if (found.length) {
-      found.remove();
+    closeOthers(data);
+    data.open = true;
+    data.list.addClass(stateOpen);
+    data.toggle.addClass(stateOpen);
+    ix.intro(0, data.el[0]);
+    Webflow.redraw.up();
+
+    // Increase z-index to keep above other managed dropdowns
+    data.manageZ && data.el.css('z-index', defaultZIndex + 1);
+
+    // Listen for tap outside events
+    var isEditor = Webflow.env('editor');
+    if (!designer) {
+      $doc.on(mouseOrTap() + namespace, data.outside);
     }
-    // Append the brand (unless Editor is active)
-    if (!inEditor) {
-      $body.append(brandElement);
+    if (data.hovering && !isEditor) {
+      data.el.on('mouseleave' + namespace, data.leave);
     }
+    if (data.hovering && isEditor) {
+      $doc.on('mousemove' + namespace, data.moveOutside);
+    }
+
+    // Clear previous delay
+    window.clearTimeout(data.delayId);
+  }
+
+  function close(data, immediate) {
+    if (!data.open) {
+      return;
+    }
+
+    // Do not close hover-based menus if currently hovering
+    if (data.config.hover && data.hovering) {
+      return;
+    }
+
+    data.open = false;
+    var config = data.config;
+    ix.outro(0, data.el[0]);
+
+    // Stop listening for tap outside events
+    $doc.off(mouseOrTap() + namespace, data.outside);
+    data.el.off('mouseleave' + namespace, data.leave);
+    $doc.off('mousemove' + namespace, data.moveOutside);
+
+    // Clear previous delay
+    window.clearTimeout(data.delayId);
+
+    // Skip delay during immediate
+    if (!config.delay || immediate) {
+      return data.complete();
+    }
+
+    // Optionally wait for delay before close
+    data.delayId = window.setTimeout(data.complete, config.delay);
+  }
+
+  function closeAll() {
+    $doc.find(namespace).each(function (i, el) {
+      $(el).triggerHandler(closeEvent);
+    });
+  }
+
+  function closeOthers(data) {
+    var self = data.el[0];
+    $dropdowns.each(function (i, other) {
+      var $other = $(other);
+      if ($other.is(self) || $other.has(self).length) {
+        return;
+      }
+      $other.triggerHandler(closeEvent);
+    });
+  }
+
+  function outside(data) {
+    // Unbind previous tap handler if it exists
+    if (data.outside) {
+      $doc.off(mouseOrTap() + namespace, data.outside);
+    }
+
+    // Close menu when tapped outside
+    return _.debounce(function (evt) {
+      if (!data.open) {
+        return;
+      }
+      var $target = $(evt.target);
+      if ($target.closest('.w-dropdown-toggle').length) {
+        return;
+      }
+      var isEventOutsideDropdowns = $.inArray(data.el[0], $target.parents(namespace)) === -1;
+      var isEditor = Webflow.env('editor');
+      if (isEventOutsideDropdowns) {
+        if (isEditor) {
+          var isEventOnDetachedSvg = $target.parents().length === 1 && $target.parents('svg').length === 1;
+          var isEventOnHoverControls = $target.parents('.w-editor-bem-EditorHoverControls').length;
+          if (isEventOnDetachedSvg || isEventOnHoverControls) {
+            return;
+          }
+        }
+        close(data);
+      }
+    });
+  }
+
+  function complete(data) {
+    return function () {
+      data.list.removeClass(stateOpen);
+      data.toggle.removeClass(stateOpen);
+
+      // Reset z-index for managed dropdowns
+      data.manageZ && data.el.css('z-index', '');
+    };
+  }
+
+  function enter(data) {
+    return function () {
+      data.hovering = true;
+      open(data);
+    };
+  }
+
+  function leave(data) {
+    return function () {
+      data.hovering = false;
+      close(data);
+    };
+  }
+
+  function moveOutside(data) {
+    return _.debounce(function (evt) {
+      if (!data.open) {
+        return;
+      }
+      var $target = $(evt.target);
+      var isEventOutsideDropdowns = $.inArray(data.el[0], $target.parents(namespace)) === -1;
+      if (isEventOutsideDropdowns) {
+        var isEventOnHoverControls = $target.parents('.w-editor-bem-EditorHoverControls').length;
+        var isEventOnHoverToolbar = $target.parents('.w-editor-bem-RTToolbar').length;
+        var $editorOverlay = $('.w-editor-bem-EditorOverlay');
+        var isDropdownInEdition = $editorOverlay.find('.w-editor-edit-outline').length || $editorOverlay.find('.w-editor-bem-RTToolbar').length;
+        if (isEventOnHoverControls || isEventOnHoverToolbar || isDropdownInEdition) {
+          return;
+        }
+        data.hovering = false;
+        close(data);
+      }
+    });
+  }
+
+  function mouseOrTap() {
+    return touch ? 'tap' : 'mouseup';
   }
 
   // Export module
@@ -2775,306 +2988,6 @@ __webpack_require__(26)('observable');
 
 
 /**
- * Webflow: Dropdown component
- */
-
-var Webflow = __webpack_require__(0);
-var IXEvents = __webpack_require__(15);
-
-Webflow.define('dropdown', module.exports = function ($, _) {
-  var api = {};
-  var $doc = $(document);
-  var $dropdowns;
-  var designer;
-  var inApp = Webflow.env();
-  var touch = Webflow.env.touch;
-  var namespace = '.w-dropdown';
-  var stateOpen = 'w--open';
-  var closeEvent = 'w-close' + namespace;
-  var ix = IXEvents.triggers;
-  var defaultZIndex = 900; // @dropdown-depth
-  var inPreview = false;
-
-  // -----------------------------------
-  // Module methods
-
-  api.ready = init;
-
-  api.design = function () {
-    // Close all when returning from preview
-    if (inPreview) {
-      closeAll();
-    }
-    inPreview = false;
-    init();
-  };
-
-  api.preview = function () {
-    inPreview = true;
-    init();
-  };
-
-  // -----------------------------------
-  // Private methods
-
-  function init() {
-    designer = inApp && Webflow.env('design');
-
-    // Find all instances on the page
-    $dropdowns = $doc.find(namespace);
-    $dropdowns.each(build);
-  }
-
-  function build(i, el) {
-    var $el = $(el);
-
-    // Store state in data
-    var data = $.data(el, namespace);
-    if (!data) {
-      data = $.data(el, namespace, { open: false, el: $el, config: {} });
-    }
-    data.list = $el.children('.w-dropdown-list');
-    data.toggle = $el.children('.w-dropdown-toggle');
-    data.links = data.list.children('.w-dropdown-link');
-    data.outside = outside(data);
-    data.complete = complete(data);
-    data.leave = leave(data);
-    data.moveOutside = moveOutside(data);
-
-    // Remove old events
-    $el.off(namespace);
-    data.toggle.off(namespace);
-
-    // Set config from data attributes
-    configure(data);
-
-    if (data.nav) {
-      data.nav.off(namespace);
-    }
-    data.nav = $el.closest('.w-nav');
-    data.nav.on(closeEvent, handler(data));
-
-    // Add events based on mode
-    if (designer) {
-      $el.on('setting' + namespace, handler(data));
-    } else {
-      data.toggle.on(mouseOrTap() + namespace, toggle(data));
-      if (data.config.hover) {
-        data.toggle.on('mouseenter' + namespace, enter(data));
-      }
-      $el.on(closeEvent, handler(data));
-
-      // Close in preview mode and clean the data.hovering state
-      if (inApp) {
-        data.hovering = false;
-        close(data);
-      }
-    }
-  }
-
-  function configure(data) {
-    // Determine if z-index should be managed
-    var zIndex = Number(data.el.css('z-index'));
-    data.manageZ = zIndex === defaultZIndex || zIndex === defaultZIndex + 1;
-
-    data.config = {
-      hover: (data.el.attr('data-hover') === true || data.el.attr('data-hover') === '1') && !touch,
-      delay: Number(data.el.attr('data-delay')) || 0
-    };
-  }
-
-  function handler(data) {
-    return function (evt, options) {
-      options = options || {};
-
-      if (evt.type === 'w-close') {
-        return close(data);
-      }
-
-      if (evt.type === 'setting') {
-        configure(data);
-        options.open === true && open(data, true);
-        options.open === false && close(data, true);
-        return;
-      }
-    };
-  }
-
-  function toggle(data) {
-    return _.debounce(function () {
-      data.open ? close(data) : open(data);
-    });
-  }
-
-  function open(data) {
-    if (data.open) {
-      return;
-    }
-    closeOthers(data);
-    data.open = true;
-    data.list.addClass(stateOpen);
-    data.toggle.addClass(stateOpen);
-    ix.intro(0, data.el[0]);
-    Webflow.redraw.up();
-
-    // Increase z-index to keep above other managed dropdowns
-    data.manageZ && data.el.css('z-index', defaultZIndex + 1);
-
-    // Listen for tap outside events
-    var isEditor = Webflow.env('editor');
-    if (!designer) {
-      $doc.on(mouseOrTap() + namespace, data.outside);
-    }
-    if (data.hovering && !isEditor) {
-      data.el.on('mouseleave' + namespace, data.leave);
-    }
-    if (data.hovering && isEditor) {
-      $doc.on('mousemove' + namespace, data.moveOutside);
-    }
-
-    // Clear previous delay
-    window.clearTimeout(data.delayId);
-  }
-
-  function close(data, immediate) {
-    if (!data.open) {
-      return;
-    }
-
-    // Do not close hover-based menus if currently hovering
-    if (data.config.hover && data.hovering) {
-      return;
-    }
-
-    data.open = false;
-    var config = data.config;
-    ix.outro(0, data.el[0]);
-
-    // Stop listening for tap outside events
-    $doc.off(mouseOrTap() + namespace, data.outside);
-    data.el.off('mouseleave' + namespace, data.leave);
-    $doc.off('mousemove' + namespace, data.moveOutside);
-
-    // Clear previous delay
-    window.clearTimeout(data.delayId);
-
-    // Skip delay during immediate
-    if (!config.delay || immediate) {
-      return data.complete();
-    }
-
-    // Optionally wait for delay before close
-    data.delayId = window.setTimeout(data.complete, config.delay);
-  }
-
-  function closeAll() {
-    $doc.find(namespace).each(function (i, el) {
-      $(el).triggerHandler(closeEvent);
-    });
-  }
-
-  function closeOthers(data) {
-    var self = data.el[0];
-    $dropdowns.each(function (i, other) {
-      var $other = $(other);
-      if ($other.is(self) || $other.has(self).length) {
-        return;
-      }
-      $other.triggerHandler(closeEvent);
-    });
-  }
-
-  function outside(data) {
-    // Unbind previous tap handler if it exists
-    if (data.outside) {
-      $doc.off(mouseOrTap() + namespace, data.outside);
-    }
-
-    // Close menu when tapped outside
-    return _.debounce(function (evt) {
-      if (!data.open) {
-        return;
-      }
-      var $target = $(evt.target);
-      if ($target.closest('.w-dropdown-toggle').length) {
-        return;
-      }
-      var isEventOutsideDropdowns = $.inArray(data.el[0], $target.parents(namespace)) === -1;
-      var isEditor = Webflow.env('editor');
-      if (isEventOutsideDropdowns) {
-        if (isEditor) {
-          var isEventOnDetachedSvg = $target.parents().length === 1 && $target.parents('svg').length === 1;
-          var isEventOnHoverControls = $target.parents('.w-editor-bem-EditorHoverControls').length;
-          if (isEventOnDetachedSvg || isEventOnHoverControls) {
-            return;
-          }
-        }
-        close(data);
-      }
-    });
-  }
-
-  function complete(data) {
-    return function () {
-      data.list.removeClass(stateOpen);
-      data.toggle.removeClass(stateOpen);
-
-      // Reset z-index for managed dropdowns
-      data.manageZ && data.el.css('z-index', '');
-    };
-  }
-
-  function enter(data) {
-    return function () {
-      data.hovering = true;
-      open(data);
-    };
-  }
-
-  function leave(data) {
-    return function () {
-      data.hovering = false;
-      close(data);
-    };
-  }
-
-  function moveOutside(data) {
-    return _.debounce(function (evt) {
-      if (!data.open) {
-        return;
-      }
-      var $target = $(evt.target);
-      var isEventOutsideDropdowns = $.inArray(data.el[0], $target.parents(namespace)) === -1;
-      if (isEventOutsideDropdowns) {
-        var isEventOnHoverControls = $target.parents('.w-editor-bem-EditorHoverControls').length;
-        var isEventOnHoverToolbar = $target.parents('.w-editor-bem-RTToolbar').length;
-        var $editorOverlay = $('.w-editor-bem-EditorOverlay');
-        var isDropdownInEdition = $editorOverlay.find('.w-editor-edit-outline').length || $editorOverlay.find('.w-editor-bem-RTToolbar').length;
-        if (isEventOnHoverControls || isEventOnHoverToolbar || isDropdownInEdition) {
-          return;
-        }
-        data.hovering = false;
-        close(data);
-      }
-    });
-  }
-
-  function mouseOrTap() {
-    return touch ? 'tap' : 'mouseup';
-  }
-
-  // Export module
-  return api;
-});
-
-/***/ }),
-/* 75 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
  * Webflow: Forms
  */
 
@@ -3084,7 +2997,7 @@ Webflow.define('forms', module.exports = function ($, _) {
   var api = {};
 
   // Cross-Domain AJAX for IE8
-  __webpack_require__(76);
+  __webpack_require__(75);
 
   var $doc = $(document);
   var $forms;
@@ -3562,7 +3475,7 @@ Webflow.define('forms', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 76 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3624,7 +3537,7 @@ module.exports = function ($) {
 }(window.jQuery);
 
 /***/ }),
-/* 77 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4152,7 +4065,7 @@ Webflow.define('ix', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 78 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4759,126 +4672,7 @@ Webflow.define('lightbox', module.exports = function ($) {
 });
 
 /***/ }),
-/* 79 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Webflow: Auto-select links to current page or section
- */
-
-var Webflow = __webpack_require__(0);
-
-Webflow.define('links', module.exports = function ($, _) {
-  var api = {};
-  var $win = $(window);
-  var designer;
-  var inApp = Webflow.env();
-  var location = window.location;
-  var tempLink = document.createElement('a');
-  var linkCurrent = 'w--current';
-  var validHash = /^#[\w:.-]+$/;
-  var indexPage = /index\.(html|php)$/;
-  var dirList = /\/$/;
-  var anchors;
-  var slug;
-
-  // -----------------------------------
-  // Module methods
-
-  api.ready = api.design = api.preview = init;
-
-  // -----------------------------------
-  // Private methods
-
-  function init() {
-    designer = inApp && Webflow.env('design');
-    slug = Webflow.env('slug') || location.pathname || '';
-
-    // Reset scroll listener, init anchors
-    Webflow.scroll.off(scroll);
-    anchors = [];
-
-    // Test all links for a selectable href
-    var links = document.links;
-    for (var i = 0; i < links.length; ++i) {
-      select(links[i]);
-    }
-
-    // Listen for scroll if any anchors exist
-    if (anchors.length) {
-      Webflow.scroll.on(scroll);
-      scroll();
-    }
-  }
-
-  function select(link) {
-    var href = designer && link.getAttribute('href-disabled') || link.getAttribute('href');
-    tempLink.href = href;
-
-    // Ignore any hrefs with a colon to safely avoid all uri schemes
-    if (href.indexOf(':') >= 0) {
-      return;
-    }
-
-    var $link = $(link);
-
-    // Check for valid hash links w/ sections and use scroll anchor
-    if (href.indexOf('#') === 0 && validHash.test(href)) {
-      var $section = $(href);
-      $section.length && anchors.push({ link: $link, sec: $section, active: false });
-      return;
-    }
-
-    // Ignore empty # links
-    if (href === '#' || href === '') {
-      return;
-    }
-
-    // Determine whether the link should be selected
-    var match = tempLink.href === location.href || href === slug || indexPage.test(href) && dirList.test(slug);
-    setClass($link, linkCurrent, match);
-  }
-
-  function scroll() {
-    var viewTop = $win.scrollTop();
-    var viewHeight = $win.height();
-
-    // Check each anchor for a section in view
-    _.each(anchors, function (anchor) {
-      var $link = anchor.link;
-      var $section = anchor.sec;
-      var top = $section.offset().top;
-      var height = $section.outerHeight();
-      var offset = viewHeight * 0.5;
-      var active = $section.is(':visible') && top + height - offset >= viewTop && top + offset <= viewTop + viewHeight;
-      if (anchor.active === active) {
-        return;
-      }
-      anchor.active = active;
-      setClass($link, linkCurrent, active);
-    });
-  }
-
-  function setClass($elem, className, add) {
-    var exists = $elem.hasClass(className);
-    if (add && exists) {
-      return;
-    }
-    if (!add && !exists) {
-      return;
-    }
-    add ? $elem.addClass(className) : $elem.removeClass(className);
-  }
-
-  // Export module
-  return api;
-});
-
-/***/ }),
-/* 80 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5083,7 +4877,7 @@ Webflow.define('maps', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 81 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5482,704 +5276,7 @@ Webflow.define('navbar', module.exports = function ($, _) {
 });
 
 /***/ }),
-/* 82 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Webflow: Smooth scroll
- */
-
-var Webflow = __webpack_require__(0);
-
-Webflow.define('scroll', module.exports = function ($) {
-  var $doc = $(document);
-  var win = window;
-  var loc = win.location;
-  var history = inIframe() ? null : win.history;
-  var validHash = /^[a-zA-Z0-9][\w:.-]*$/;
-
-  function inIframe() {
-    try {
-      return Boolean(win.frameElement);
-    } catch (e) {
-      return true;
-    }
-  }
-
-  function ready() {
-    // The current page url without the hash part.
-    var locHref = loc.href.split('#')[0];
-
-    // When clicking on a link, check if it links to another part of the page
-    $doc.on('click', 'a', function (e) {
-      if (Webflow.env('design')) {
-        return;
-      }
-
-      // Ignore links being used by jQuery mobile
-      if (window.$.mobile && $(e.currentTarget).hasClass('ui-link')) {
-        return;
-      }
-
-      // Ignore empty # links
-      if (this.getAttribute('href') === '#') {
-        e.preventDefault();
-        return;
-      }
-
-      // The href property always contains the full url so we can compare
-      // with the document’s location to only target links on this page.
-      var parts = this.href.split('#');
-      var hash = parts[0] === locHref ? parts[1] : null;
-      if (hash) {
-        findEl(hash, e);
-      }
-    });
-  }
-
-  function findEl(hash, e) {
-    if (!validHash.test(hash)) {
-      return;
-    }
-
-    var el = $('#' + hash);
-    if (!el.length) {
-      return;
-    }
-
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    // Push new history state
-    if (loc.hash !== hash && history && history.pushState &&
-    // Navigation breaks Chrome when the protocol is `file:`.
-    !(Webflow.env.chrome && loc.protocol === 'file:')) {
-      var oldHash = history.state && history.state.hash;
-      if (oldHash !== hash) {
-        history.pushState({ hash: hash }, '', '#' + hash);
-      }
-    }
-
-    // If a fixed header exists, offset for the height
-    var rootTag = Webflow.env('editor') ? '.w-editor-body' : 'body';
-    var header = $('header, ' + rootTag + ' > .header, ' + rootTag + ' > .w-nav:not([data-no-scroll])');
-    var offset = header.css('position') === 'fixed' ? header.outerHeight() : 0;
-
-    win.setTimeout(function () {
-      scroll(el, offset);
-    }, e ? 0 : 300);
-  }
-
-  function scroll(el, offset) {
-    var start = $(win).scrollTop();
-    var end = el.offset().top - offset;
-
-    // If specified, scroll so that the element ends up in the middle of the viewport
-    if (el.data('scroll') === 'mid') {
-      var available = $(win).height() - offset;
-      var elHeight = el.outerHeight();
-      if (elHeight < available) {
-        end -= Math.round((available - elHeight) / 2);
-      }
-    }
-
-    var mult = 1;
-
-    // Check for custom time multiplier on the body and the element
-    $('body').add(el).each(function () {
-      var time = parseFloat($(this).attr('data-scroll-time'), 10);
-      if (!isNaN(time) && (time === 0 || time > 0)) {
-        mult = time;
-      }
-    });
-
-    // Shim for IE8 and below
-    if (!Date.now) {
-      Date.now = function () {
-        return new Date().getTime();
-      };
-    }
-
-    var clock = Date.now();
-    var animate = win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || function (fn) {
-      win.setTimeout(fn, 15);
-    };
-    var duration = (472.143 * Math.log(Math.abs(start - end) + 125) - 2000) * mult;
-
-    var step = function step() {
-      var elapsed = Date.now() - clock;
-      win.scroll(0, getY(start, end, elapsed, duration));
-
-      if (elapsed <= duration) {
-        animate(step);
-      }
-    };
-
-    step();
-  }
-
-  function getY(start, end, elapsed, duration) {
-    if (elapsed > duration) {
-      return end;
-    }
-
-    return start + (end - start) * ease(elapsed / duration);
-  }
-
-  function ease(t) {
-    return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-  }
-
-  // Export module
-  return { ready: ready };
-});
-
-/***/ }),
-/* 83 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Webflow: Slider component
- */
-
-var Webflow = __webpack_require__(0);
-var IXEvents = __webpack_require__(15);
-
-Webflow.define('slider', module.exports = function ($, _) {
-  var api = {};
-  var tram = $.tram;
-  var $doc = $(document);
-  var $sliders;
-  var designer;
-  var inApp = Webflow.env();
-  var namespace = '.w-slider';
-  var dot = '<div class="w-slider-dot" data-wf-ignore />';
-  var ix = IXEvents.triggers;
-  var fallback;
-  var inRedraw;
-
-  // -----------------------------------
-  // Module methods
-
-  api.ready = function () {
-    designer = Webflow.env('design');
-    init();
-  };
-
-  api.design = function () {
-    designer = true;
-    init();
-  };
-
-  api.preview = function () {
-    designer = false;
-    init();
-  };
-
-  api.redraw = function () {
-    inRedraw = true;
-    init();
-  };
-
-  api.destroy = removeListeners;
-
-  // -----------------------------------
-  // Private methods
-
-  function init() {
-    // Find all sliders on the page
-    $sliders = $doc.find(namespace);
-    if (!$sliders.length) {
-      return;
-    }
-    $sliders.filter(':visible').each(build);
-    inRedraw = null;
-    if (fallback) {
-      return;
-    }
-
-    removeListeners();
-    addListeners();
-  }
-
-  function removeListeners() {
-    Webflow.resize.off(renderAll);
-    Webflow.redraw.off(api.redraw);
-  }
-
-  function addListeners() {
-    Webflow.resize.on(renderAll);
-    Webflow.redraw.on(api.redraw);
-  }
-
-  function renderAll() {
-    $sliders.filter(':visible').each(render);
-  }
-
-  function build(i, el) {
-    var $el = $(el);
-
-    // Store slider state in data
-    var data = $.data(el, namespace);
-    if (!data) {
-      data = $.data(el, namespace, {
-        index: 0,
-        depth: 1,
-        el: $el,
-        config: {}
-      });
-    }
-    data.mask = $el.children('.w-slider-mask');
-    data.left = $el.children('.w-slider-arrow-left');
-    data.right = $el.children('.w-slider-arrow-right');
-    data.nav = $el.children('.w-slider-nav');
-    data.slides = data.mask.children('.w-slide');
-    data.slides.each(ix.reset);
-    if (inRedraw) {
-      data.maskWidth = 0;
-    }
-
-    // Disable in old browsers
-    if (!tram.support.transform) {
-      data.left.hide();
-      data.right.hide();
-      data.nav.hide();
-      fallback = true;
-      return;
-    }
-
-    // Remove old events
-    data.el.off(namespace);
-    data.left.off(namespace);
-    data.right.off(namespace);
-    data.nav.off(namespace);
-
-    // Set config from data attributes
-    configure(data);
-
-    // Add events based on mode
-    if (designer) {
-      data.el.on('setting' + namespace, handler(data));
-      stopTimer(data);
-      data.hasTimer = false;
-    } else {
-      data.el.on('swipe' + namespace, handler(data));
-      data.left.on('tap' + namespace, previousFunction(data));
-      data.right.on('tap' + namespace, next(data));
-
-      // Start timer if autoplay is true, only once
-      if (data.config.autoplay && !data.hasTimer) {
-        data.hasTimer = true;
-        data.timerCount = 1;
-        startTimer(data);
-      }
-    }
-
-    // Listen to nav events
-    data.nav.on('tap' + namespace, '> div', handler(data));
-
-    // Remove gaps from formatted html (for inline-blocks)
-    if (!inApp) {
-      data.mask.contents().filter(function () {
-        return this.nodeType === 3;
-      }).remove();
-    }
-
-    // Run first render
-    render(i, el);
-  }
-
-  function configure(data) {
-    var config = {};
-
-    config.crossOver = 0;
-
-    // Set config options from data attributes
-    config.animation = data.el.attr('data-animation') || 'slide';
-    if (config.animation === 'outin') {
-      config.animation = 'cross';
-      config.crossOver = 0.5;
-    }
-    config.easing = data.el.attr('data-easing') || 'ease';
-
-    var duration = data.el.attr('data-duration');
-    config.duration = duration != null ? parseInt(duration, 10) : 500;
-
-    if (isAttrTrue(data.el.attr('data-infinite'))) {
-      config.infinite = true;
-    }
-
-    if (isAttrTrue(data.el.attr('data-disable-swipe'))) {
-      config.disableSwipe = true;
-    }
-
-    if (isAttrTrue(data.el.attr('data-hide-arrows'))) {
-      config.hideArrows = true;
-    } else if (data.config.hideArrows) {
-      data.left.show();
-      data.right.show();
-    }
-
-    if (isAttrTrue(data.el.attr('data-autoplay'))) {
-      config.autoplay = true;
-      config.delay = parseInt(data.el.attr('data-delay'), 10) || 2000;
-      config.timerMax = parseInt(data.el.attr('data-autoplay-limit'), 10);
-      // Disable timer on first touch or mouse down
-      var touchEvents = 'mousedown' + namespace + ' touchstart' + namespace;
-      if (!designer) {
-        data.el.off(touchEvents).one(touchEvents, function () {
-          stopTimer(data);
-        });
-      }
-    }
-
-    // Use edge buffer to help calculate page count
-    var arrowWidth = data.right.width();
-    config.edge = arrowWidth ? arrowWidth + 40 : 100;
-
-    // Store config in data
-    data.config = config;
-  }
-
-  function isAttrTrue(value) {
-    return value === '1' || value === 'true';
-  }
-
-  function previousFunction(data) {
-    return function () {
-      change(data, { index: data.index - 1, vector: -1 });
-    };
-  }
-
-  function next(data) {
-    return function () {
-      change(data, { index: data.index + 1, vector: 1 });
-    };
-  }
-
-  function select(data, value) {
-    // Select page based on slide element index
-    var found = null;
-    if (value === data.slides.length) {
-      init();layout(data); // Rebuild and find new slides
-    }
-    _.each(data.anchors, function (anchor, index) {
-      $(anchor.els).each(function (i, el) {
-        if ($(el).index() === value) {
-          found = index;
-        }
-      });
-    });
-    if (found != null) {
-      change(data, { index: found, immediate: true });
-    }
-  }
-
-  function startTimer(data) {
-    stopTimer(data);
-    var config = data.config;
-    var timerMax = config.timerMax;
-    if (timerMax && data.timerCount++ > timerMax) {
-      return;
-    }
-    data.timerId = window.setTimeout(function () {
-      if (data.timerId == null || designer) {
-        return;
-      }
-      next(data)();
-      startTimer(data);
-    }, config.delay);
-  }
-
-  function stopTimer(data) {
-    window.clearTimeout(data.timerId);
-    data.timerId = null;
-  }
-
-  function handler(data) {
-    return function (evt, options) {
-      options = options || {};
-      var config = data.config;
-
-      // Designer settings
-      if (designer && evt.type === 'setting') {
-        if (options.select === 'prev') {
-          return previousFunction(data)();
-        }
-        if (options.select === 'next') {
-          return next(data)();
-        }
-        configure(data);
-        layout(data);
-        if (options.select == null) {
-          return;
-        }
-        select(data, options.select);
-        return;
-      }
-
-      // Swipe event
-      if (evt.type === 'swipe') {
-        if (config.disableSwipe) {
-          return;
-        }
-        if (Webflow.env('editor')) {
-          return;
-        }
-        if (options.direction === 'left') {
-          return next(data)();
-        }
-        if (options.direction === 'right') {
-          return previousFunction(data)();
-        }
-        return;
-      }
-
-      // Page buttons
-      if (data.nav.has(evt.target).length) {
-        change(data, { index: $(evt.target).index() });
-      }
-    };
-  }
-
-  function change(data, options) {
-    options = options || {};
-    var config = data.config;
-    var anchors = data.anchors;
-
-    // Set new index
-    data.previous = data.index;
-    var index = options.index;
-    var shift = {};
-    if (index < 0) {
-      index = anchors.length - 1;
-      if (config.infinite) {
-        // Shift first slide to the end
-        shift.x = -data.endX;
-        shift.from = 0;
-        shift.to = anchors[0].width;
-      }
-    } else if (index >= anchors.length) {
-      index = 0;
-      if (config.infinite) {
-        // Shift last slide to the start
-        shift.x = anchors[anchors.length - 1].width;
-        shift.from = -anchors[anchors.length - 1].x;
-        shift.to = shift.from - shift.x;
-      }
-    }
-    data.index = index;
-
-    // Select page nav
-    var active = data.nav.children().eq(data.index).addClass('w-active');
-    data.nav.children().not(active).removeClass('w-active');
-
-    // Hide arrows
-    if (config.hideArrows) {
-      data.index === anchors.length - 1 ? data.right.hide() : data.right.show();
-      data.index === 0 ? data.left.hide() : data.left.show();
-    }
-
-    // Get page offset from anchors
-    var lastOffsetX = data.offsetX || 0;
-    var offsetX = data.offsetX = -anchors[data.index].x;
-    var resetConfig = { x: offsetX, opacity: 1, visibility: '' };
-
-    // Transition slides
-    var targets = $(anchors[data.index].els);
-    var prevTargs = $(anchors[data.previous] && anchors[data.previous].els);
-    var others = data.slides.not(targets);
-    var animation = config.animation;
-    var easing = config.easing;
-    var duration = Math.round(config.duration);
-    var vector = options.vector || (data.index > data.previous ? 1 : -1);
-    var fadeRule = 'opacity ' + duration + 'ms ' + easing;
-    var slideRule = 'transform ' + duration + 'ms ' + easing;
-
-    // Trigger IX events
-    if (!designer) {
-      targets.each(ix.intro);
-      others.each(ix.outro);
-    }
-
-    // Set immediately after layout changes (but not during redraw)
-    if (options.immediate && !inRedraw) {
-      tram(targets).set(resetConfig);
-      resetOthers();
-      return;
-    }
-
-    // Exit early if index is unchanged
-    if (data.index === data.previous) {
-      return;
-    }
-
-    // Cross Fade / Out-In
-    if (animation === 'cross') {
-      var reduced = Math.round(duration - duration * config.crossOver);
-      var wait = Math.round(duration - reduced);
-      fadeRule = 'opacity ' + reduced + 'ms ' + easing;
-      tram(prevTargs).set({ visibility: '' }).add(fadeRule).start({ opacity: 0 });
-      tram(targets).set({ visibility: '', x: offsetX, opacity: 0, zIndex: data.depth++ }).add(fadeRule).wait(wait).then({ opacity: 1 }).then(resetOthers);
-      return;
-    }
-
-    // Fade Over
-    if (animation === 'fade') {
-      tram(prevTargs).set({ visibility: '' }).stop();
-      tram(targets).set({ visibility: '', x: offsetX, opacity: 0, zIndex: data.depth++ }).add(fadeRule).start({ opacity: 1 }).then(resetOthers);
-      return;
-    }
-
-    // Slide Over
-    if (animation === 'over') {
-      resetConfig = { x: data.endX };
-      tram(prevTargs).set({ visibility: '' }).stop();
-      tram(targets).set({ visibility: '', zIndex: data.depth++, x: offsetX + anchors[data.index].width * vector }).add(slideRule).start({ x: offsetX }).then(resetOthers);
-      return;
-    }
-
-    // Slide - infinite scroll
-    if (config.infinite && shift.x) {
-      tram(data.slides.not(prevTargs)).set({ visibility: '', x: shift.x }).add(slideRule).start({ x: offsetX });
-      tram(prevTargs).set({ visibility: '', x: shift.from }).add(slideRule).start({ x: shift.to });
-      data.shifted = prevTargs;
-    } else {
-      if (config.infinite && data.shifted) {
-        tram(data.shifted).set({ visibility: '', x: lastOffsetX });
-        data.shifted = null;
-      }
-
-      // Slide - basic scroll
-      tram(data.slides).set({ visibility: '' }).add(slideRule).start({ x: offsetX });
-    }
-
-    // Helper to move others out of view
-    function resetOthers() {
-      targets = $(anchors[data.index].els);
-      others = data.slides.not(targets);
-      if (animation !== 'slide') {
-        resetConfig.visibility = 'hidden';
-      }
-      tram(others).set(resetConfig);
-    }
-  }
-
-  function render(i, el) {
-    var data = $.data(el, namespace);
-    if (!data) {
-      return;
-    }
-    if (maskChanged(data)) {
-      return layout(data);
-    }
-    if (designer && slidesChanged(data)) {
-      layout(data);
-    }
-  }
-
-  function layout(data) {
-    // Determine page count from width of slides
-    var pages = 1;
-    var offset = 0;
-    var anchor = 0;
-    var width = 0;
-    var maskWidth = data.maskWidth;
-    var threshold = maskWidth - data.config.edge;
-    if (threshold < 0) {
-      threshold = 0;
-    }
-    data.anchors = [{ els: [], x: 0, width: 0 }];
-    data.slides.each(function (i, el) {
-      if (anchor - offset > threshold) {
-        pages++;
-        offset += maskWidth;
-        // Store page anchor for transition
-        data.anchors[pages - 1] = { els: [], x: anchor, width: 0 };
-      }
-      // Set next anchor using current width + margin
-      width = $(el).outerWidth(true);
-      anchor += width;
-      data.anchors[pages - 1].width += width;
-      data.anchors[pages - 1].els.push(el);
-    });
-    data.endX = anchor;
-
-    // Build dots if nav exists and needs updating
-    if (designer) {
-      data.pages = null;
-    }
-    if (data.nav.length && data.pages !== pages) {
-      data.pages = pages;
-      buildNav(data);
-    }
-
-    // Make sure index is still within range and call change handler
-    var index = data.index;
-    if (index >= pages) {
-      index = pages - 1;
-    }
-    change(data, { immediate: true, index: index });
-  }
-
-  function buildNav(data) {
-    var dots = [];
-    var $dot;
-    var spacing = data.el.attr('data-nav-spacing');
-    if (spacing) {
-      spacing = parseFloat(spacing) + 'px';
-    }
-    for (var i = 0; i < data.pages; i++) {
-      $dot = $(dot);
-      if (data.nav.hasClass('w-num')) {
-        $dot.text(i + 1);
-      }
-      if (spacing != null) {
-        $dot.css({
-          'margin-left': spacing,
-          'margin-right': spacing
-        });
-      }
-      dots.push($dot);
-    }
-    data.nav.empty().append(dots);
-  }
-
-  function maskChanged(data) {
-    var maskWidth = data.mask.width();
-    if (data.maskWidth !== maskWidth) {
-      data.maskWidth = maskWidth;
-      return true;
-    }
-    return false;
-  }
-
-  function slidesChanged(data) {
-    var slidesWidth = 0;
-    data.slides.each(function (i, el) {
-      slidesWidth += $(el).outerWidth(true);
-    });
-    if (data.slidesWidth !== slidesWidth) {
-      data.slidesWidth = slidesWidth;
-      return true;
-    }
-    return false;
-  }
-
-  // Export module
-  return api;
-});
-
-/***/ }),
-/* 84 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6413,12 +5510,384 @@ Webflow.define('tabs', module.exports = function ($) {
 });
 
 /***/ }),
-/* 85 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+// @wf-will-never-add-flow-to-this-file
+/* eslint-disable */
+/**
+ * Webflow: Brand pages on the subdomain
+ */
+
+var Webflow = __webpack_require__(0);
+
+Webflow.define('brand', module.exports = function ($) {
+  var api = {};
+  var doc = document;
+  var $html = $('html');
+  var $body = $('body');
+  var namespace = '.w-webflow-badge';
+  var location = window.location;
+  var isPhantom = /PhantomJS/i.test(navigator.userAgent);
+  var fullScreenEvents = 'fullscreenchange webkitfullscreenchange mozfullscreenchange msfullscreenchange';
+  var brandElement;
+
+  // -----------------------------------
+  // Module methods
+
+  api.ready = function () {
+    var shouldBrand = $html.attr('data-wf-status');
+    var publishedDomain = $html.attr('data-wf-domain') || '';
+    if (/\.webflow\.io$/i.test(publishedDomain) && location.hostname !== publishedDomain) {
+      shouldBrand = true;
+    }
+    if (shouldBrand && !isPhantom) {
+      brandElement = brandElement || createBadge();
+      ensureBrand();
+      setTimeout(ensureBrand, 500);
+
+      $(doc).off(fullScreenEvents, onFullScreenChange).on(fullScreenEvents, onFullScreenChange);
+    }
+  };
+
+  function onFullScreenChange() {
+    var fullScreen = doc.fullScreen || doc.mozFullScreen || doc.webkitIsFullScreen || doc.msFullscreenElement || Boolean(doc.webkitFullscreenElement);
+    $(brandElement).attr('style', fullScreen ? 'display: none !important;' : '');
+  }
+
+  function createBadge() {
+    var $brand = $('<a class="w-webflow-badge"></a>').attr('href', 'https://webflow.com?utm_campaign=brandjs');
+
+    var $logoArt = $('<img>').attr('src', 'https://d3e54v103j8qbb.cloudfront.net/img/webflow-badge-icon.f67cd735e3.svg').css({
+      marginRight: '8px',
+      width: '16px'
+    });
+
+    var $logoText = $('<img>').attr('src', 'https://d1otoma47x30pg.cloudfront.net/img/webflow-badge-text.6faa6a38cd.svg');
+
+    $brand.append($logoArt, $logoText);
+    return $brand[0];
+  }
+
+  function ensureBrand() {
+    var found = $body.children(namespace);
+    var match = found.length && found.get(0) === brandElement;
+    var inEditor = Webflow.env('editor');
+    if (match) {
+      // Remove brand when Editor is active
+      if (inEditor) {
+        found.remove();
+      }
+      // Exit early, brand is in place
+      return;
+    }
+    // Remove any invalid brand elements
+    if (found.length) {
+      found.remove();
+    }
+    // Append the brand (unless Editor is active)
+    if (!inEditor) {
+      $body.append(brandElement);
+    }
+  }
+
+  // Export module
+  return api;
+});
+
+/***/ }),
+/* 82 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// @wf-will-never-add-flow-to-this-file
+/* eslint-disable */
+/**
+ * Webflow: Auto-select links to current page or section
+ */
+
+var Webflow = __webpack_require__(0);
+
+Webflow.define('links', module.exports = function ($, _) {
+  var api = {};
+  var $win = $(window);
+  var designer;
+  var inApp = Webflow.env();
+  var location = window.location;
+  var tempLink = document.createElement('a');
+  var linkCurrent = 'w--current';
+  var validHash = /^#[\w:.-]+$/;
+  var indexPage = /index\.(html|php)$/;
+  var dirList = /\/$/;
+  var anchors;
+  var slug;
+
+  // -----------------------------------
+  // Module methods
+
+  api.ready = api.design = api.preview = init;
+
+  // -----------------------------------
+  // Private methods
+
+  function init() {
+    designer = inApp && Webflow.env('design');
+    slug = Webflow.env('slug') || location.pathname || '';
+
+    // Reset scroll listener, init anchors
+    Webflow.scroll.off(scroll);
+    anchors = [];
+
+    // Test all links for a selectable href
+    var links = document.links;
+    for (var i = 0; i < links.length; ++i) {
+      select(links[i]);
+    }
+
+    // Listen for scroll if any anchors exist
+    if (anchors.length) {
+      Webflow.scroll.on(scroll);
+      scroll();
+    }
+  }
+
+  function select(link) {
+    var href = designer && link.getAttribute('href-disabled') || link.getAttribute('href');
+    tempLink.href = href;
+
+    // Ignore any hrefs with a colon to safely avoid all uri schemes
+    if (href.indexOf(':') >= 0) {
+      return;
+    }
+
+    var $link = $(link);
+
+    // Check for valid hash links w/ sections and use scroll anchor
+    if (href.indexOf('#') === 0 && validHash.test(href)) {
+      var $section = $(href);
+      $section.length && anchors.push({ link: $link, sec: $section, active: false });
+      return;
+    }
+
+    // Ignore empty # links
+    if (href === '#' || href === '') {
+      return;
+    }
+
+    // Determine whether the link should be selected
+    var match = tempLink.href === location.href || href === slug || indexPage.test(href) && dirList.test(slug);
+    setClass($link, linkCurrent, match);
+  }
+
+  function scroll() {
+    var viewTop = $win.scrollTop();
+    var viewHeight = $win.height();
+
+    // Check each anchor for a section in view
+    _.each(anchors, function (anchor) {
+      var $link = anchor.link;
+      var $section = anchor.sec;
+      var top = $section.offset().top;
+      var height = $section.outerHeight();
+      var offset = viewHeight * 0.5;
+      var active = $section.is(':visible') && top + height - offset >= viewTop && top + offset <= viewTop + viewHeight;
+      if (anchor.active === active) {
+        return;
+      }
+      anchor.active = active;
+      setClass($link, linkCurrent, active);
+    });
+  }
+
+  function setClass($elem, className, add) {
+    var exists = $elem.hasClass(className);
+    if (add && exists) {
+      return;
+    }
+    if (!add && !exists) {
+      return;
+    }
+    add ? $elem.addClass(className) : $elem.removeClass(className);
+  }
+
+  // Export module
+  return api;
+});
+
+/***/ }),
+/* 83 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// @wf-will-never-add-flow-to-this-file
+/* eslint-disable */
+/**
+ * Webflow: Smooth scroll
+ */
+
+var Webflow = __webpack_require__(0);
+
+Webflow.define('scroll', module.exports = function ($) {
+  var $doc = $(document);
+  var win = window;
+  var loc = win.location;
+  var history = inIframe() ? null : win.history;
+  var validHash = /^[a-zA-Z0-9][\w:.-]*$/;
+
+  function inIframe() {
+    try {
+      return Boolean(win.frameElement);
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function ready() {
+    // The current page url without the hash part.
+    var locHref = loc.href.split('#')[0];
+
+    // When clicking on a link, check if it links to another part of the page
+    $doc.on('click', 'a', function (e) {
+      if (Webflow.env('design')) {
+        return;
+      }
+
+      // Ignore links being used by jQuery mobile
+      if (window.$.mobile && $(e.currentTarget).hasClass('ui-link')) {
+        return;
+      }
+
+      // Ignore empty # links
+      if (this.getAttribute('href') === '#') {
+        e.preventDefault();
+        return;
+      }
+
+      // The href property always contains the full url so we can compare
+      // with the document’s location to only target links on this page.
+      var parts = this.href.split('#');
+      var hash = parts[0] === locHref ? parts[1] : null;
+      if (hash) {
+        findEl(hash, e);
+      }
+    });
+  }
+
+  function findEl(hash, e) {
+    if (!validHash.test(hash)) {
+      return;
+    }
+
+    var el = $('#' + hash);
+    if (!el.length) {
+      return;
+    }
+
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Push new history state
+    if (loc.hash !== hash && history && history.pushState &&
+    // Navigation breaks Chrome when the protocol is `file:`.
+    !(Webflow.env.chrome && loc.protocol === 'file:')) {
+      var oldHash = history.state && history.state.hash;
+      if (oldHash !== hash) {
+        history.pushState({ hash: hash }, '', '#' + hash);
+      }
+    }
+
+    // If a fixed header exists, offset for the height
+    var rootTag = Webflow.env('editor') ? '.w-editor-body' : 'body';
+    var header = $('header, ' + rootTag + ' > .header, ' + rootTag + ' > .w-nav:not([data-no-scroll])');
+    var offset = header.css('position') === 'fixed' ? header.outerHeight() : 0;
+
+    win.setTimeout(function () {
+      scroll(el, offset);
+    }, e ? 0 : 300);
+  }
+
+  function scroll(el, offset) {
+    var start = $(win).scrollTop();
+    var end = el.offset().top - offset;
+
+    // If specified, scroll so that the element ends up in the middle of the viewport
+    if (el.data('scroll') === 'mid') {
+      var available = $(win).height() - offset;
+      var elHeight = el.outerHeight();
+      if (elHeight < available) {
+        end -= Math.round((available - elHeight) / 2);
+      }
+    }
+
+    var mult = 1;
+
+    // Check for custom time multiplier on the body and the element
+    $('body').add(el).each(function () {
+      var time = parseFloat($(this).attr('data-scroll-time'), 10);
+      if (!isNaN(time) && (time === 0 || time > 0)) {
+        mult = time;
+      }
+    });
+
+    // Shim for IE8 and below
+    if (!Date.now) {
+      Date.now = function () {
+        return new Date().getTime();
+      };
+    }
+
+    var clock = Date.now();
+    var animate = win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || function (fn) {
+      win.setTimeout(fn, 15);
+    };
+    var duration = (472.143 * Math.log(Math.abs(start - end) + 125) - 2000) * mult;
+
+    var step = function step() {
+      var elapsed = Date.now() - clock;
+      win.scroll(0, getY(start, end, elapsed, duration));
+
+      if (elapsed <= duration) {
+        animate(step);
+      }
+    };
+
+    step();
+  }
+
+  function getY(start, end, elapsed, duration) {
+    if (elapsed > duration) {
+      return end;
+    }
+
+    return start + (end - start) * ease(elapsed / duration);
+  }
+
+  function ease(t) {
+    return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+  }
+
+  // Export module
+  return { ready: ready };
+});
+
+/***/ }),
+/* 84 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// @wf-will-never-add-flow-to-this-file
+/* eslint-disable */
 /**
  * Webflow: Touch events
  */
@@ -6503,7 +5972,9 @@ Webflow.define('touch', module.exports = function ($) {
 
       // Allow swipes while pointer is down, but prevent them during text selection
       if (Math.abs(velocityX) > thresholdX && getSelection && String(getSelection()) === '') {
-        triggerEvent('swipe', evt, { direction: velocityX > 0 ? 'right' : 'left' });
+        triggerEvent('swipe', evt, {
+          direction: velocityX > 0 ? 'right' : 'left'
+        });
         cancel();
       }
 
@@ -6559,6 +6030,552 @@ Webflow.define('touch', module.exports = function ($) {
 
   // Listen for touch events on all nodes by default.
   api.instance = api.init(document);
+
+  // Export module
+  return api;
+});
+
+/***/ }),
+/* 85 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// @wf-will-never-add-flow-to-this-file
+/* eslint-disable */
+/**
+ * Webflow: Slider component
+ */
+
+var Webflow = __webpack_require__(0);
+var IXEvents = __webpack_require__(15);
+
+Webflow.define('slider', module.exports = function ($, _) {
+  var api = {};
+  var tram = $.tram;
+  var $doc = $(document);
+  var $sliders;
+  var designer;
+  var inApp = Webflow.env();
+  var namespace = '.w-slider';
+  var dot = '<div class="w-slider-dot" data-wf-ignore />';
+  var ix = IXEvents.triggers;
+  var fallback;
+  var inRedraw;
+
+  // -----------------------------------
+  // Module methods
+
+  api.ready = function () {
+    designer = Webflow.env('design');
+    init();
+  };
+
+  api.design = function () {
+    designer = true;
+    init();
+  };
+
+  api.preview = function () {
+    designer = false;
+    init();
+  };
+
+  api.redraw = function () {
+    inRedraw = true;
+    init();
+  };
+
+  api.destroy = removeListeners;
+
+  // -----------------------------------
+  // Private methods
+
+  function init() {
+    // Find all sliders on the page
+    $sliders = $doc.find(namespace);
+    if (!$sliders.length) {
+      return;
+    }
+    $sliders.filter(':visible').each(build);
+    inRedraw = null;
+    if (fallback) {
+      return;
+    }
+
+    removeListeners();
+    addListeners();
+  }
+
+  function removeListeners() {
+    Webflow.resize.off(renderAll);
+    Webflow.redraw.off(api.redraw);
+  }
+
+  function addListeners() {
+    Webflow.resize.on(renderAll);
+    Webflow.redraw.on(api.redraw);
+  }
+
+  function renderAll() {
+    $sliders.filter(':visible').each(render);
+  }
+
+  function build(i, el) {
+    var $el = $(el);
+
+    // Store slider state in data
+    var data = $.data(el, namespace);
+    if (!data) {
+      data = $.data(el, namespace, {
+        index: 0,
+        depth: 1,
+        el: $el,
+        config: {}
+      });
+    }
+    data.mask = $el.children('.w-slider-mask');
+    data.left = $el.children('.w-slider-arrow-left');
+    data.right = $el.children('.w-slider-arrow-right');
+    data.nav = $el.children('.w-slider-nav');
+    data.slides = data.mask.children('.w-slide');
+    data.slides.each(ix.reset);
+    if (inRedraw) {
+      data.maskWidth = 0;
+    }
+
+    // Disable in old browsers
+    if (!tram.support.transform) {
+      data.left.hide();
+      data.right.hide();
+      data.nav.hide();
+      fallback = true;
+      return;
+    }
+
+    // Remove old events
+    data.el.off(namespace);
+    data.left.off(namespace);
+    data.right.off(namespace);
+    data.nav.off(namespace);
+
+    // Set config from data attributes
+    configure(data);
+
+    // Add events based on mode
+    if (designer) {
+      data.el.on('setting' + namespace, handler(data));
+      stopTimer(data);
+      data.hasTimer = false;
+    } else {
+      data.el.on('swipe' + namespace, handler(data));
+      data.left.on('tap' + namespace, previousFunction(data));
+      data.right.on('tap' + namespace, next(data));
+
+      // Start timer if autoplay is true, only once
+      if (data.config.autoplay && !data.hasTimer) {
+        data.hasTimer = true;
+        data.timerCount = 1;
+        startTimer(data);
+      }
+    }
+
+    // Listen to nav events
+    data.nav.on('tap' + namespace, '> div', handler(data));
+
+    // Remove gaps from formatted html (for inline-blocks)
+    if (!inApp) {
+      data.mask.contents().filter(function () {
+        return this.nodeType === 3;
+      }).remove();
+    }
+
+    // Run first render
+    render(i, el);
+  }
+
+  function configure(data) {
+    var config = {};
+
+    config.crossOver = 0;
+
+    // Set config options from data attributes
+    config.animation = data.el.attr('data-animation') || 'slide';
+    if (config.animation === 'outin') {
+      config.animation = 'cross';
+      config.crossOver = 0.5;
+    }
+    config.easing = data.el.attr('data-easing') || 'ease';
+
+    var duration = data.el.attr('data-duration');
+    config.duration = duration != null ? parseInt(duration, 10) : 500;
+
+    if (isAttrTrue(data.el.attr('data-infinite'))) {
+      config.infinite = true;
+    }
+
+    if (isAttrTrue(data.el.attr('data-disable-swipe'))) {
+      config.disableSwipe = true;
+    }
+
+    if (isAttrTrue(data.el.attr('data-hide-arrows'))) {
+      config.hideArrows = true;
+    } else if (data.config.hideArrows) {
+      data.left.show();
+      data.right.show();
+    }
+
+    if (isAttrTrue(data.el.attr('data-autoplay'))) {
+      config.autoplay = true;
+      config.delay = parseInt(data.el.attr('data-delay'), 10) || 2000;
+      config.timerMax = parseInt(data.el.attr('data-autoplay-limit'), 10);
+      // Disable timer on first touch or mouse down
+      var touchEvents = 'mousedown' + namespace + ' touchstart' + namespace;
+      if (!designer) {
+        data.el.off(touchEvents).one(touchEvents, function () {
+          stopTimer(data);
+        });
+      }
+    }
+
+    // Use edge buffer to help calculate page count
+    var arrowWidth = data.right.width();
+    config.edge = arrowWidth ? arrowWidth + 40 : 100;
+
+    // Store config in data
+    data.config = config;
+  }
+
+  function isAttrTrue(value) {
+    return value === '1' || value === 'true';
+  }
+
+  function previousFunction(data) {
+    return function () {
+      change(data, { index: data.index - 1, vector: -1 });
+    };
+  }
+
+  function next(data) {
+    return function () {
+      change(data, { index: data.index + 1, vector: 1 });
+    };
+  }
+
+  function select(data, value) {
+    // Select page based on slide element index
+    var found = null;
+    if (value === data.slides.length) {
+      init();
+      layout(data); // Rebuild and find new slides
+    }
+    _.each(data.anchors, function (anchor, index) {
+      $(anchor.els).each(function (i, el) {
+        if ($(el).index() === value) {
+          found = index;
+        }
+      });
+    });
+    if (found != null) {
+      change(data, { index: found, immediate: true });
+    }
+  }
+
+  function startTimer(data) {
+    stopTimer(data);
+    var config = data.config;
+    var timerMax = config.timerMax;
+    if (timerMax && data.timerCount++ > timerMax) {
+      return;
+    }
+    data.timerId = window.setTimeout(function () {
+      if (data.timerId == null || designer) {
+        return;
+      }
+      next(data)();
+      startTimer(data);
+    }, config.delay);
+  }
+
+  function stopTimer(data) {
+    window.clearTimeout(data.timerId);
+    data.timerId = null;
+  }
+
+  function handler(data) {
+    return function (evt, options) {
+      options = options || {};
+      var config = data.config;
+
+      // Designer settings
+      if (designer && evt.type === 'setting') {
+        if (options.select === 'prev') {
+          return previousFunction(data)();
+        }
+        if (options.select === 'next') {
+          return next(data)();
+        }
+        configure(data);
+        layout(data);
+        if (options.select == null) {
+          return;
+        }
+        select(data, options.select);
+        return;
+      }
+
+      // Swipe event
+      if (evt.type === 'swipe') {
+        if (config.disableSwipe) {
+          return;
+        }
+        if (Webflow.env('editor')) {
+          return;
+        }
+        if (options.direction === 'left') {
+          return next(data)();
+        }
+        if (options.direction === 'right') {
+          return previousFunction(data)();
+        }
+        return;
+      }
+
+      // Page buttons
+      if (data.nav.has(evt.target).length) {
+        change(data, { index: $(evt.target).index() });
+      }
+    };
+  }
+
+  function change(data, options) {
+    options = options || {};
+    var config = data.config;
+    var anchors = data.anchors;
+
+    // Set new index
+    data.previous = data.index;
+    var index = options.index;
+    var shift = {};
+    if (index < 0) {
+      index = anchors.length - 1;
+      if (config.infinite) {
+        // Shift first slide to the end
+        shift.x = -data.endX;
+        shift.from = 0;
+        shift.to = anchors[0].width;
+      }
+    } else if (index >= anchors.length) {
+      index = 0;
+      if (config.infinite) {
+        // Shift last slide to the start
+        shift.x = anchors[anchors.length - 1].width;
+        shift.from = -anchors[anchors.length - 1].x;
+        shift.to = shift.from - shift.x;
+      }
+    }
+    data.index = index;
+
+    // Select page nav
+    var active = data.nav.children().eq(data.index).addClass('w-active');
+    data.nav.children().not(active).removeClass('w-active');
+
+    // Hide arrows
+    if (config.hideArrows) {
+      data.index === anchors.length - 1 ? data.right.hide() : data.right.show();
+      data.index === 0 ? data.left.hide() : data.left.show();
+    }
+
+    // Get page offset from anchors
+    var lastOffsetX = data.offsetX || 0;
+    var offsetX = data.offsetX = -anchors[data.index].x;
+    var resetConfig = { x: offsetX, opacity: 1, visibility: '' };
+
+    // Transition slides
+    var targets = $(anchors[data.index].els);
+    var prevTargs = $(anchors[data.previous] && anchors[data.previous].els);
+    var others = data.slides.not(targets);
+    var animation = config.animation;
+    var easing = config.easing;
+    var duration = Math.round(config.duration);
+    var vector = options.vector || (data.index > data.previous ? 1 : -1);
+    var fadeRule = 'opacity ' + duration + 'ms ' + easing;
+    var slideRule = 'transform ' + duration + 'ms ' + easing;
+
+    // Trigger IX events
+    if (!designer) {
+      targets.each(ix.intro);
+      others.each(ix.outro);
+    }
+
+    // Set immediately after layout changes (but not during redraw)
+    if (options.immediate && !inRedraw) {
+      tram(targets).set(resetConfig);
+      resetOthers();
+      return;
+    }
+
+    // Exit early if index is unchanged
+    if (data.index === data.previous) {
+      return;
+    }
+
+    // Cross Fade / Out-In
+    if (animation === 'cross') {
+      var reduced = Math.round(duration - duration * config.crossOver);
+      var wait = Math.round(duration - reduced);
+      fadeRule = 'opacity ' + reduced + 'ms ' + easing;
+      tram(prevTargs).set({ visibility: '' }).add(fadeRule).start({ opacity: 0 });
+      tram(targets).set({ visibility: '', x: offsetX, opacity: 0, zIndex: data.depth++ }).add(fadeRule).wait(wait).then({ opacity: 1 }).then(resetOthers);
+      return;
+    }
+
+    // Fade Over
+    if (animation === 'fade') {
+      tram(prevTargs).set({ visibility: '' }).stop();
+      tram(targets).set({ visibility: '', x: offsetX, opacity: 0, zIndex: data.depth++ }).add(fadeRule).start({ opacity: 1 }).then(resetOthers);
+      return;
+    }
+
+    // Slide Over
+    if (animation === 'over') {
+      resetConfig = { x: data.endX };
+      tram(prevTargs).set({ visibility: '' }).stop();
+      tram(targets).set({
+        visibility: '',
+        zIndex: data.depth++,
+        x: offsetX + anchors[data.index].width * vector
+      }).add(slideRule).start({ x: offsetX }).then(resetOthers);
+      return;
+    }
+
+    // Slide - infinite scroll
+    if (config.infinite && shift.x) {
+      tram(data.slides.not(prevTargs)).set({ visibility: '', x: shift.x }).add(slideRule).start({ x: offsetX });
+      tram(prevTargs).set({ visibility: '', x: shift.from }).add(slideRule).start({ x: shift.to });
+      data.shifted = prevTargs;
+    } else {
+      if (config.infinite && data.shifted) {
+        tram(data.shifted).set({ visibility: '', x: lastOffsetX });
+        data.shifted = null;
+      }
+
+      // Slide - basic scroll
+      tram(data.slides).set({ visibility: '' }).add(slideRule).start({ x: offsetX });
+    }
+
+    // Helper to move others out of view
+    function resetOthers() {
+      targets = $(anchors[data.index].els);
+      others = data.slides.not(targets);
+      if (animation !== 'slide') {
+        resetConfig.visibility = 'hidden';
+      }
+      tram(others).set(resetConfig);
+    }
+  }
+
+  function render(i, el) {
+    var data = $.data(el, namespace);
+    if (!data) {
+      return;
+    }
+    if (maskChanged(data)) {
+      return layout(data);
+    }
+    if (designer && slidesChanged(data)) {
+      layout(data);
+    }
+  }
+
+  function layout(data) {
+    // Determine page count from width of slides
+    var pages = 1;
+    var offset = 0;
+    var anchor = 0;
+    var width = 0;
+    var maskWidth = data.maskWidth;
+    var threshold = maskWidth - data.config.edge;
+    if (threshold < 0) {
+      threshold = 0;
+    }
+    data.anchors = [{ els: [], x: 0, width: 0 }];
+    data.slides.each(function (i, el) {
+      if (anchor - offset > threshold) {
+        pages++;
+        offset += maskWidth;
+        // Store page anchor for transition
+        data.anchors[pages - 1] = { els: [], x: anchor, width: 0 };
+      }
+      // Set next anchor using current width + margin
+      width = $(el).outerWidth(true);
+      anchor += width;
+      data.anchors[pages - 1].width += width;
+      data.anchors[pages - 1].els.push(el);
+    });
+    data.endX = anchor;
+
+    // Build dots if nav exists and needs updating
+    if (designer) {
+      data.pages = null;
+    }
+    if (data.nav.length && data.pages !== pages) {
+      data.pages = pages;
+      buildNav(data);
+    }
+
+    // Make sure index is still within range and call change handler
+    var index = data.index;
+    if (index >= pages) {
+      index = pages - 1;
+    }
+    change(data, { immediate: true, index: index });
+  }
+
+  function buildNav(data) {
+    var dots = [];
+    var $dot;
+    var spacing = data.el.attr('data-nav-spacing');
+    if (spacing) {
+      spacing = parseFloat(spacing) + 'px';
+    }
+    for (var i = 0; i < data.pages; i++) {
+      $dot = $(dot);
+      if (data.nav.hasClass('w-num')) {
+        $dot.text(i + 1);
+      }
+      if (spacing != null) {
+        $dot.css({
+          'margin-left': spacing,
+          'margin-right': spacing
+        });
+      }
+      dots.push($dot);
+    }
+    data.nav.empty().append(dots);
+  }
+
+  function maskChanged(data) {
+    var maskWidth = data.mask.width();
+    if (data.maskWidth !== maskWidth) {
+      data.maskWidth = maskWidth;
+      return true;
+    }
+    return false;
+  }
+
+  function slidesChanged(data) {
+    var slidesWidth = 0;
+    data.slides.each(function (i, el) {
+      slidesWidth += $(el).outerWidth(true);
+    });
+    if (data.slidesWidth !== slidesWidth) {
+      data.slidesWidth = slidesWidth;
+      return true;
+    }
+    return false;
+  }
 
   // Export module
   return api;

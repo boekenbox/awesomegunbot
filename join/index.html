@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
 <!--  This site was created in Webflow. http://www.webflow.com  -->
 <!--  Last Published: Fri Mar 01 2019 11:27:14 GMT+0000 (UTC)  -->
-<html data-wf-page="5ba89a429ad78772ef1faad4" data-wf-site="5b9779f58f2b573b4460cdbb">
+<html data-wf-page="5c693b3c46b367ecc3f3f1db" data-wf-site="5b9779f58f2b573b4460cdbb">
 <head>
   <meta charset="utf-8">
-  <title>Shopping cart</title>
+  <title>join</title>
   <meta content="You are just one step away from owning Gunbot." name="description">
-  <meta content="Shopping cart" property="og:title">
+  <meta content="join" property="og:title">
   <meta content="You are just one step away from owning Gunbot." property="og:description">
   <meta content="summary" name="twitter:card">
   <meta content="width=device-width, initial-scale=1" name="viewport">
@@ -51,18 +51,27 @@
       <div class="container w-container">
         <div data-ix="fade-in-on-load" class="white-contact-form centered w-form">
           <form id="wf-form-Buy-form" name="wf-form-Buy-form" data-name="Buy form" action="https://wt-b6e9d873fd5dfca293560032272f1f8d-0.sandbox.auth0-extend.com/awesome-gunbot/start" class="w-clearfix">
-            <h1 class="form-title">You are one step away from owning a lifetime license of the best trading bot on the market! 🚀</h1>
-            <p class="infobox"><strong>You are buying:</strong>  Gunbot RT Standard edition<br>‍<br> After your payment we&#x27;ll reach out to you and help you get started!</p>
-            <h1 class="small-section-title bold small">How can we reach you?</h1><input type="email" class="text-field w-input" autofocus="true" maxlength="256" name="email" data-name="email" placeholder="Your email address*" id="email" required="">
-            <div class="text-block-2">We&#x27;ll send you instructions on how to get started.</div>
-            <div class="w-row">
-              <div class="contact-column w-col w-col-6"><input type="text" class="text-field-2 w-input" maxlength="256" name="first_name" data-name="first_name" placeholder="First name*" id="first_name" required=""></div>
-              <div class="contact-column w-col w-col-6"><input type="text" class="text-field-3 w-input" maxlength="256" name="last_name" data-name="last_name" placeholder="Last name*" id="last_name" required=""></div>
+            <h1 class="form-title">You&#x27;re almost ready to start using Gunbot🚀</h1>
+            <p class="infobox"><strong>Selected package:</strong>  <span id="product-name"></span></p>
+            <div>
+              <h1 class="small-section-title bold small">Join our free private support community</h1>
             </div>
-            <h1 class="small-section-title bold small">Register your API key</h1><textarea id="api_keys" name="api_keys" placeholder="Enter the API keys for the exchanges you want to use Gunbot on" maxlength="5000" data-name="api_keys" class="textarea w-input"></textarea>
-            <div class="text-block-2">Security tip: NEVER share the exchange API secrets with anyone.</div>
-            <p class="paragraph-4">There is no security risk to sending your API key. Please save the corresponding API secret for your own administration.<br>The key to register does not need to have trading permissions, as Gunbot can use a secondary key for actual trading.<br><br>By providing your exchange API key we can activate your license on the same day, you can also send it to us after your purchase.</p><input type="submit" value="Pay via CoinPayments" data-wait="Please wait..." class="submit-button w-button">
-            <div class="text-block-2 right">Payments accepted in Bitcoin and a number of altcoins</div>
+            <div class="text-block-3">Get access to our private Awesome Gunbot support community. You&#x27;ll get access to our private support group on Telegram and an email based ticket system to help you with any Gunbot related question. <br><br>This support group is our way of saying thank you for using the partner links on our site to purchase a Gunbot license.</div><input type="email" class="text-field w-input" autofocus="true" maxlength="256" name="email" data-name="email" placeholder="Your email address*" id="email" required="">
+            <div class="text-block-2">We will use this email address to invite you to our community and keep you up to date about Gunbot news.</div>
+            <div class="checkbox-field w-checkbox"><input type="checkbox" id="checkbox" name="checkbox" data-name="Checkbox" class="w-checkbox-input"><label for="checkbox" class="w-form-label">Yes, I consent to receive email about Gunbot. </label></div><input type="submit" value="Go to payment on gunthy.org" data-wait="Please wait..." class="submit-button w-button">
+            <div class="text-block-2 right">Gunthy.org is our partner and the developer of Gunbot.<br>The payment process accepts Bitcoin.</div>
+            <div>
+              <h1 class="small-section-title bold small"></h1>
+            </div>
+            <div>
+              <h1 class="small-section-title bold small high">Checklist for a smooth start</h1>
+            </div>
+            <p>Gunbot uses a Blockchain license verification system, the initial steps to get started are a bit different from regular online transactions. <strong>After your order you can use Gunbot immediately.</strong><br>‍<br>We made this checklist for you to be up and running in the shortest amount of time.</p>
+            <ul>
+              <li><strong>Have an ERC-20 (Ethereum) compatible wallet ready. Not an exchange wallet.<br></strong>Your Gunbot license will be registered to this wallet address, you can change this address at any time after you&#x27;ve setup Gunbot.<br><br>Sounds complicated? It just takes a few minutes if you follow <a href="https://github.com/GuntharDeNiro/BTCT/wiki/api-key-management" target="_blank" class="link-3">these instructions</a>.</li>
+              <li class="list-item"><strong>Create API keys for the exchanges you want to use Gunbot on. <br></strong>This is optional, but the fastest way to get up and running. You can update your API keys at any later time.<br>Use fictional placeholders if you just aren&#x27;t ready to create your API key(s) yet. <br><br>Not sure how to do this? Follow <a href="https://github.com/GuntharDeNiro/BTCT/wiki/api" target="_blank" class="link-4">this guide.</a></li>
+            </ul>
+			<input id="product-slug" name="product" type="hidden" />
           </form>
           <div class="success-message w-form-done"></div>
           <div class="error-bg w-form-fail"></div>
@@ -70,8 +79,7 @@
       </div>
     </div>
   </div>
-  <div class="section below-contact-form"></div>
-  <div class="section tint">
+  <div class="section tint join">
     <div class="container above-image-section w-container">
       <div class="section-title-wrapper">
         <h2 class="section-title">Frequently asked questions</h2>
@@ -79,8 +87,8 @@
       <div class="feature-info-row w-row">
         <div class="feature-info-column w-col w-col-4">
           <div class="feature-info-block">
-            <div class="feature-info-title">Why buy from this site?</div>
-            <p class="feature-info-paragraph">Gunbot is available only through resellers like us, who are responsible for customer support. When you buy from us, we&#x27;ll make sure you get actual good customer service.</p>
+            <div class="feature-info-title">Who is gunthy.org?</div>
+            <p class="feature-info-paragraph">Gunthy.org is the official developer of Gunbot. We are an affiliate partner of gunthy.org, and offer an awesome support community for anyone using our links.</p>
           </div>
         </div>
         <div class="feature-info-column w-col w-col-4">
@@ -97,43 +105,6 @@
         </div>
       </div>
     </div>
-  </div>
-  <div id="customers" class="section-24">
-    <div class="w-container">
-      <h2 class="small-section-title">What our customers say about us</h2>
-      <div data-animation="slide" data-duration="500" data-infinite="1" class="testimonial-slider-2 w-slider">
-        <div class="w-slider-mask">
-          <div class="testimony-slide w-slide">
-            <p class="testimony-text">“Thanks for your support yesterday. <br><br>I can’t recommend awesome gunbot enough. <br>Best support I’ve had with any software I’ve purchased!”</p>
-            <div class="name">Zippy</div>
-          </div>
-          <div class="testimony-slide w-slide">
-            <p class="testimony-text">“Your support is top notch and I will make sure anyone else that I know that buys this software buys from you :)<br><br> the help is greatly appreciated, I know how challenging it can be answering basic noob questions over and over again as a pro”</p>
-            <div class="name">Mark</div>
-          </div>
-          <div class="testimony-slide w-slide">
-            <p class="testimony-text">“I have to say that Gunbot is an awesome piece of software, it seems that it works great for the most part. <br><br>On top of that the customers service that you provide is outstanding.”</p>
-            <div class="name">M.</div>
-          </div>
-          <div class="testimony-slide w-slide">
-            <p class="testimony-text">“Dude, the support is AMAZING here”</p>
-            <div class="name">MoCrypto</div>
-          </div>
-          <div class="testimony-slide w-slide">
-            <p class="testimony-text">“I appreciate your help and this channel, it really helps out”</p>
-            <div class="name">Tiger Suplex</div>
-          </div>
-        </div>
-        <div class="slider-arrow w-slider-arrow-left">
-          <div class="w-icon-slider-left"></div>
-        </div>
-        <div class="slider-arrow w-slider-arrow-right">
-          <div class="w-icon-slider-right"></div>
-        </div>
-        <div class="slide-nav w-slider-nav w-round"></div>
-      </div>
-    </div>
-    <p class="paragraph-3">Real reviews from our private support group on Telegram.</p>
   </div>
   <div class="white-footer">
     <div class="container w-container">

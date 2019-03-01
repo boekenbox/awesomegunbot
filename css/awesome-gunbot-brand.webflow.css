@@ -1,7 +1,7 @@
 body {
   height: 100%;
   background-color: #424549;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   color: #333;
   font-size: 15px;
   line-height: 23px;
@@ -542,6 +542,7 @@ figcaption {
 }
 
 .section.tint {
+  margin-top: 0px;
   padding-bottom: 80px;
   background-color: #fff;
 }
@@ -556,7 +557,12 @@ figcaption {
 }
 
 .section.tint.grey {
+  margin-top: 0px;
   background-color: #f5f5f5;
+}
+
+.section.tint.join {
+  margin-top: 300px;
 }
 
 .section.app-info-section {
@@ -1462,7 +1468,7 @@ figcaption {
 
 .feature-title {
   margin-bottom: 23px;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   color: #1e2022;
   font-size: 19px;
   font-weight: 600;
@@ -1676,9 +1682,14 @@ figcaption {
 }
 
 .small-section-title.bold.small {
+  margin-top: 0px;
   padding-top: 10px;
   font-size: 22px;
   font-weight: 600;
+}
+
+.small-section-title.bold.small.high {
+  margin-top: 80px;
 }
 
 .logo-column {
@@ -2135,7 +2146,7 @@ figcaption {
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
   background-color: transparent;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   color: #fff;
   font-size: 12px;
   letter-spacing: 1px;
@@ -2158,7 +2169,7 @@ figcaption {
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
   background-color: transparent;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   color: #fff;
   font-size: 12px;
   letter-spacing: 1px;
@@ -2879,7 +2890,7 @@ figcaption {
 
 .hero-main-title {
   margin-top: 0px;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   color: #fff;
   font-size: 70px;
   line-height: 54px;
@@ -3462,7 +3473,7 @@ figcaption {
   position: relative;
   z-index: 10;
   display: block;
-  width: 70%;
+  width: 100%;
   height: auto;
   margin-right: auto;
   margin-bottom: -265px;
@@ -3495,7 +3506,7 @@ figcaption {
 .subpage-title {
   margin-top: 0px;
   margin-bottom: 0px;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   font-size: 50px;
   line-height: 40px;
   font-weight: 400;
@@ -3529,7 +3540,7 @@ figcaption {
   margin-top: 20px;
   margin-right: auto;
   margin-left: auto;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   font-size: 20px;
   line-height: 27px;
   font-weight: 300;
@@ -5031,7 +5042,7 @@ figcaption {
 }
 
 .paragraph-2 {
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   color: #000;
   font-size: 16px;
   font-weight: 400;
@@ -5056,7 +5067,7 @@ figcaption {
   margin-top: 0px;
   padding-top: 0px;
   padding-bottom: 0px;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   color: #333;
   font-size: 15px;
   text-align: center;
@@ -5319,6 +5330,7 @@ figcaption {
 }
 
 .submit-button {
+  margin-top: 10px;
   padding: 10px 25px;
   float: right;
   border: 1px solid transparent;
@@ -5398,7 +5410,7 @@ figcaption {
   margin: auto;
   padding-right: 10px;
   padding-left: 10px;
-  font-family: 'Source Sans Pro';
+  font-family: 'Source Sans Pro', sans-serif;
   font-size: 20px;
   line-height: 25px;
 }
@@ -5499,6 +5511,43 @@ figcaption {
 
 .image-16 {
   padding-top: 0px;
+}
+
+.link-2 {
+  color: #fff;
+}
+
+.link-2:hover {
+  background-color: #fff;
+}
+
+.link-3 {
+  color: #000;
+}
+
+.list-item {
+  padding-top: 15px;
+  padding-bottom: 0px;
+}
+
+.link-4 {
+  color: #000;
+}
+
+.text-block-3 {
+  padding-bottom: 15px;
+}
+
+.checkbox-field {
+  padding-top: 7px;
+}
+
+.link-5 {
+  color: #fff;
+}
+
+.link-6 {
+  color: #fff;
 }
 
 html.w-mod-js *[data-ix="hide-block-title"] {
@@ -8829,8 +8878,11 @@ html.w-mod-js *[data-ix="hide-lightbox"] {
     display: block;
     margin-right: auto;
     margin-left: auto;
+    padding-right: 10px;
+    padding-left: 10px;
     float: none;
-    font-size: 16px;
+    font-size: 14px;
+    text-align: left;
   }
   .icon {
     margin-top: 0px;
