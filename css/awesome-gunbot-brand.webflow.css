@@ -2280,7 +2280,7 @@ figcaption {
 
 .pricing-feature-item {
   margin-bottom: 0px;
-  padding: 5px 18px;
+  padding: 5px;
   border-top: 1px solid rgba(0, 0, 0, .1);
 }
 
@@ -5548,6 +5548,10 @@ figcaption {
 
 .link-6 {
   color: #fff;
+}
+
+.bitcoin {
+  font-size: 30px;
 }
 
 html.w-mod-js *[data-ix="hide-block-title"] {

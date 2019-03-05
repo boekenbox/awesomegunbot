@@ -1,13 +1,13 @@
 ﻿<!DOCTYPE html>
 <!--  This site was created in Webflow. http://www.webflow.com  -->
-<!--  Last Published: Fri Mar 01 2019 11:27:14 GMT+0000 (UTC)  -->
+<!--  Last Published: Tue Mar 05 2019 10:01:15 GMT+0000 (UTC)  -->
 <html data-wf-page="5c693b3c46b367ecc3f3f1db" data-wf-site="5b9779f58f2b573b4460cdbb">
 <head>
   <meta charset="utf-8">
-  <title>join</title>
-  <meta content="You are just one step away from owning Gunbot." name="description">
-  <meta content="join" property="og:title">
-  <meta content="You are just one step away from owning Gunbot." property="og:description">
+  <title>Join our awesome Gunbot support community</title>
+  <meta content="We provide an awesome support community for everyone who purchases Gunbot through our affiliate links." name="description">
+  <meta content="Join our awesome Gunbot support community" property="og:title">
+  <meta content="We provide an awesome support community for everyone who purchases Gunbot through our affiliate links." property="og:description">
   <meta content="summary" name="twitter:card">
   <meta content="width=device-width, initial-scale=1" name="viewport">
   <meta content="Webflow" name="generator">
@@ -50,15 +50,15 @@
     <div class="hero-block-overlay business-2">
       <div class="container w-container">
         <div data-ix="fade-in-on-load" class="white-contact-form centered w-form">
-          <form id="wf-form-Buy-form" name="wf-form-Buy-form" data-name="Buy form" action="https://wt-b6e9d873fd5dfca293560032272f1f8d-0.sandbox.auth0-extend.com/awesome-gunbot/start" class="w-clearfix">
+          <form id="wf-form-Buy-form" name="wf-form-Buy-form" data-name="Buy form" target="_blank" action="https://wt-b6e9d873fd5dfca293560032272f1f8d-0.sandbox.auth0-extend.com/awesome-gunbot/start" class="w-clearfix">
             <h1 class="form-title">You&#x27;re almost ready to start using Gunbot🚀</h1>
-            <p class="infobox"><strong>Selected package:</strong>  <span id="product-name"></span></p>
+            <p class="infobox"><strong>Selected package:</strong> <input type="hidden" id="product-slug" name="product" /> <span id="product-name">Gunbot RT Standard edition</span></p>
             <div>
               <h1 class="small-section-title bold small">Join our free private support community</h1>
             </div>
-            <div class="text-block-3">Get access to our private Awesome Gunbot support community. You&#x27;ll get access to our private support group on Telegram and an email based ticket system to help you with any Gunbot related question. <br><br>This support group is our way of saying thank you for using the partner links on our site to purchase a Gunbot license.</div><input type="email" class="text-field w-input" autofocus="true" maxlength="256" name="email" data-name="email" placeholder="Your email address*" id="email" required="">
-            <div class="text-block-2">We will use this email address to invite you to our community and keep you up to date about Gunbot news.</div>
-            <div class="checkbox-field w-checkbox"><input type="checkbox" id="checkbox" name="checkbox" data-name="Checkbox" class="w-checkbox-input"><label for="checkbox" class="w-form-label">Yes, I consent to receive email about Gunbot. </label></div><input type="submit" value="Go to payment on gunthy.org" data-wait="Please wait..." class="submit-button w-button">
+            <div class="text-block-3">Optional: get free awesome, personal support for anything Gunbot. You&#x27;ll get access to our private support group on Telegram and an email based ticket system to help you with any Gunbot related question. <br><br>This support group is our way of saying thank you for using the partner links on our site to purchase a Gunbot license.</div><input type="email" class="text-field w-input" autofocus="true" maxlength="256" name="email" data-name="email" placeholder="Your email address*" id="email">
+            <div class="text-block-2">We will use this email address to invite you to our community and inform you about Gunbot software updates.</div>
+            <div class="checkbox-field w-checkbox"><input type="checkbox" id="checkbox" name="checkbox" data-name="Checkbox" class="w-checkbox-input"><label for="checkbox" class="w-form-label">Yes, it&#x27;s okay to receive email from Awesome Gunbot support </label></div><input type="submit" value="Go to payment on gunthy.org" data-wait="Please wait..." class="submit-button w-button">
             <div class="text-block-2 right">Gunthy.org is our partner and the developer of Gunbot.<br>The payment process accepts Bitcoin.</div>
             <div>
               <h1 class="small-section-title bold small"></h1>
@@ -71,7 +71,6 @@
               <li><strong>Have an ERC-20 (Ethereum) compatible wallet ready. Not an exchange wallet.<br></strong>Your Gunbot license will be registered to this wallet address, you can change this address at any time after you&#x27;ve setup Gunbot.<br><br>Sounds complicated? It just takes a few minutes if you follow <a href="https://github.com/GuntharDeNiro/BTCT/wiki/api-key-management" target="_blank" class="link-3">these instructions</a>.</li>
               <li class="list-item"><strong>Create API keys for the exchanges you want to use Gunbot on. <br></strong>This is optional, but the fastest way to get up and running. You can update your API keys at any later time.<br>Use fictional placeholders if you just aren&#x27;t ready to create your API key(s) yet. <br><br>Not sure how to do this? Follow <a href="https://github.com/GuntharDeNiro/BTCT/wiki/api" target="_blank" class="link-4">this guide.</a></li>
             </ul>
-			<input id="product-slug" name="product" type="hidden" />
           </form>
           <div class="success-message w-form-done"></div>
           <div class="error-bg w-form-fail"></div>
@@ -88,7 +87,7 @@
         <div class="feature-info-column w-col w-col-4">
           <div class="feature-info-block">
             <div class="feature-info-title">Who is gunthy.org?</div>
-            <p class="feature-info-paragraph">Gunthy.org is the official developer of Gunbot. We are an affiliate partner of gunthy.org, and offer an awesome support community for anyone using our links.</p>
+            <p class="feature-info-paragraph">Gunthy.org is the official developer of Gunbot. We are an affiliate partner of gunthy.org, and offer a free, high quality support community for anyone using our links.</p>
           </div>
         </div>
         <div class="feature-info-column w-col w-col-4">
@@ -481,7 +480,7 @@
     otc: true, // new payment system
   }
             }
-            var product_slug = window.location.hash.replace('#', '')
+            var product_slug = window.location.hash.replace('#', '') || 'standard'
             $('#product-slug').val(product_slug)
             $('#product-name').text(PRODUCTS[product_slug].name)
             if (window.localStorage) {

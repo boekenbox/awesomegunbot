@@ -4,7 +4,11 @@
    for /R %x in (*.html) do ren "%x" index.html
 4. find and replace in all documents:
    "../ --> "
-5. add to cart:
-   <span id="product-name"></span>
-6. add to cart:
-   <input id="product-slug" name="product" type="hidden" />
+5. add to join infobox:
+   <input type="hidden" id="product-slug" name="product" /> <span id="product-name">Gunbot RT Standard edition</span>
+6. add to join, before form action:
+   target="_blank"
+7. remove from join, email input:
+   required=""
+8. change line in join script:
+   var product_slug = window.location.hash.replace('#', '') || 'standard'
