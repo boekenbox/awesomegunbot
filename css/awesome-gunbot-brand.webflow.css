@@ -2146,6 +2146,10 @@ figcaption {
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
   background-color: transparent;
+  box-shadow: 1px 1px 3px 0 #000;
+  -webkit-transform: translate(0px, 0px);
+  -ms-transform: translate(0px, 0px);
+  transform: translate(0px, 0px);
   font-family: 'Source Sans Pro', sans-serif;
   color: #fff;
   font-size: 12px;
@@ -2187,8 +2191,13 @@ figcaption {
 
 .tab-button-right.middle {
   border-width: 1px;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.tab-button-right.middle.w--current {
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
 .pricing-tab-pane {
