@@ -1,16 +1,52 @@
 # Redirects from what the browser requests to what we serve
-/features/default-settings              /features
-/features/tradingview-add-on             /features
-/features/reversal-trading              /features
-/features/double-up              /features
-/features/headless-mode              /features
-/features/browser-based-interface              /features
-/features/system-requirements              /features
-/features/multiple-exchanges              /features
-/features/gunbot-strategies              /features
-/features/enhance-manual-trading             /features
-/results             /live-demo
-/upgrade             /shop
-/buy-gunbot             /shop
-/shop             /get-started
-/cart             /get-started
+/features/default-settings              	https://www.gunbot.com/features
+/features/tradingview-add-on             	https://www.gunbot.com/features
+/features/reversal-trading              	https://www.gunbot.com/features
+/features/double-up             		 	https://www.gunbot.com/features
+/features/headless-mode              		https://www.gunbot.com/features
+/features/browser-based-interface        	https://www.gunbot.com/features
+/features/system-requirements              	https://www.gunbot.com/features
+/features/multiple-exchanges              	https://www.gunbot.com/features
+/features/gunbot-strategies              	https://www.gunbot.com/features
+/features/enhance-manual-trading            https://www.gunbot.com/features
+/results             						https://www.gunbot.com/live-demo
+/upgrade             						https://www.gunbot.com/get-started
+/buy-gunbot             					https://www.gunbot.com/get-started
+/shop             							https://www.gunbot.com/get-started
+/cart             							https://www.gunbot.com/get-started
+/											https://www.gunbot.com/
+/how-gunbot-works							https://www.gunbot.com/how-gunbot-works
+/features									https://www.gunbot.com/features
+/live-demo									https://www.gunbot.com/live-demo
+/support									https://www.gunbot.com/support
+/blog										https://www.gunbot.com/blog
+/exchanges/bitmex-testnet-bot				https://www.gunbot.com/bitmex-testnet-bot
+/contact									https://www.gunbot.com/contact
+/binance-profit-calculator					https://www.gunbot.com/binance-profit-calculator
+/bittrex-profit-calculator					https://www.gunbot.com/bittrex-profit-calculator
+/exchanges									https://www.gunbot.com/exchanges
+/exchanges/binance-trading-bot				https://www.gunbot.com/exchanges/binance-trading-bot
+/exchanges/bitfinex-trading-bot				https://www.gunbot.com/exchanges/bitfinex-trading-bot
+/exchanges/bitmex-trading-bot				https://www.gunbot.com/exchanges/bitmex-trading-bot
+/exchanges/bittrex-trading-bot				https://www.gunbot.com/exchanges/bittrex-trading-bot
+/exchanges/cex-trading-bot					https://www.gunbot.com/exchanges/cex-trading-bot
+/exchanges/coinbase-pro-trading-bot			https://www.gunbot.com/exchanges/coinbase-pro-trading-bot
+/exchanges/cryptopia-trading-bot			https://www.gunbot.com/exchanges/cryptopia-trading-bot
+/exchanges/huobi-trading-bot				https://www.gunbot.com/exchanges/huobi-trading-bot
+/exchanges/kraken-trading-bot				https://www.gunbot.com/exchanges/kraken-trading-bot
+/exchanges/kucoin-trading-bot				https://www.gunbot.com/exchanges/kucoin-trading-bot
+/exchanges/poloniex-trading-bot				https://www.gunbot.com/exchanges/poloniex-trading-bot
+/trading									https://www.gunbot.com/trading
+/trading/day-trading						https://www.gunbot.com/trading/day-trading
+/trading/trading-bot						https://www.gunbot.com/trading/trading-bot
+/trading/trading-software					https://www.gunbot.com/trading/trading-software
+/trading/trading-strategies					https://www.gunbot.com/trading/trading-strategies
+/trading/trading-system						https://www.gunbot.com/trading/trading-system
+/cryptocurrency								https://www.gunbot.com/cryptocurrency	
+/cryptocurrency/investing					https://www.gunbot.com/cryptocurrency/investing
+/cryptocurrency/portfolio					https://www.gunbot.com/cryptocurrency/portfolio
+/cryptocurrency/trading-for-beginners		https://www.gunbot.com/cryptocurrency/trading-for-beginners
+
+
+
+
