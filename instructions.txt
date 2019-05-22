@@ -8,7 +8,7 @@
    <input type="hidden" id="product-slug" name="product" /> <span id="product-name">Gunbot RT Standard edition</span>
 6. add to join, before form action:
    target="_blank"
-7. remove from join, email input:
-   required=""
+7. change email input to:
+   <div class="checkbox-field w-checkbox"><input type="checkbox" id="consent" name="consent" data-name="Checkbox" required="" class="w-checkbox-input"><label for="consent" class="w-form-label">
 8. change line in join script:
    var product_slug = window.location.hash.replace('#', '') || 'standard'
